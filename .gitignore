@@ -1,0 +1,14 @@
+.venv/
+.venv-win/
+__pycache__/
+*.pyc
+.env
+.DS_Store
+
+# Bot Discord et enregistrements de réunions
+bot/node_modules/
+output/sessions/
+
+# Application de bureau (PyInstaller)
+build/
+dist/

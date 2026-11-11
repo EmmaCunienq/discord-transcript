@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#b0bc99">
+<meta name="color-scheme" content="light dark">
+<title>Réglages — Discord Transcript</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; padding: 24px 16px; display: flex; justify-content: center;
+    color: var(--text); background: var(--bg); background-image: var(--page-background);
+    background-position: center; background-size: cover; background-attachment: fixed;
+    font: 14px/1.5 "Segoe UI", -apple-system, sans-serif;
+  }
+  .settings-panel {
+    width: 100%; max-width: 640px; align-self: flex-start; background: var(--card);
+    border: 1px solid var(--border); border-radius: 18px; padding: 24px 28px;
+    box-shadow: 0 12px 40px var(--shadow);
+  }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 26px 0 4px; }
+  p.intro, .hint { color: var(--muted); margin: 0; }
+  .hint { font-size: 12px; margin-top: 4px; }
+  label { display: block; margin-top: 12px; font-weight: 600; }
+  input, select {
+    font: inherit; width: 100%; margin-top: 4px; padding: 8px 10px; color: var(--text);
+    background: var(--field); border: 1px solid var(--border); border-radius: 10px;
+  }
+  input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .row { display: flex; gap: 8px; }
+  .row input { flex: 1; min-width: 0; }
+  .row button { margin-top: 4px; white-space: nowrap; }
+  .bot { display: grid; grid-template-columns: 1fr 2fr auto auto; gap: 8px; margin-top: 8px; }
+  .bot input, .bot button { margin-top: 0; }
+  button {
+    font: inherit; cursor: pointer; border: 1px solid var(--border); border-radius: 10px;
+    padding: 8px 14px; background: var(--field); color: var(--text);
+  }
+  button:disabled { opacity: .5; cursor: default; }
+  button.primary { background: var(--accent); color: var(--accent-text); border-color: transparent; font-weight: 600; }
+  button.remove:hover { color: var(--rec); }
+  #addBot { margin-top: 10px; }
+  .actions { display: flex; gap: 8px; justify-content: flex-end; align-items: center; margin-top: 28px; flex-wrap: wrap; }
+  #status { margin-right: auto; color: var(--muted); }
+  #status.error { color: var(--rec); }
+  #status.ok { color: var(--ok); }
+  a { color: inherit; }
+</style>
+<link rel="stylesheet" href="/static/themes.css">
+<link rel="icon" type="image/svg+xml" href="/static/assets/app-icon.svg">
+<script src="/static/app-icon.js"></script>
+<script src="/static/themes.js"></script>
+<script src="/static/app-menu.js" defer></script>
+</head>
+<body>
+<main class="settings-panel">
+  <div class="settings-top">
+    <a class="back-link" href="/" data-home-link>← Retour à l'application</a>
+    <div data-app-menu></div>
+  </div>
+  <h1>Réglages</h1>
+  <p class="intro">Une interface à votre goût.</p>
+
+  <fieldset class="appearance">
+    <legend>Apparence</legend>
+    <p class="hint" id="themeHint">Une interface épurée ou une escapade illustrée ? Choisissez votre décor, appliqué immédiatement, sans redémarrage.</p>
+    <div class="theme-grid" data-theme-picker aria-describedby="themeHint"></div>
+    <p class="hint theme-notice" data-theme-notice role="status" aria-live="polite">Le choix est mémorisé sur cet appareil, indépendamment des profils.</p>
+  </fieldset>
+
+  <p class="hint" id="desktopHint">Les réglages de connexion sont disponibles dans l'application de bureau.</p>
+  <span id="status" role="status"></span>
+  <form id="form" hidden>
+    <p class="hint">Enregistrer ces réglages redémarre l'application.</p>
+    <h2>Bots Discord</h2>
+    <p class="hint">Chaque profil (onglet) choisit son bot. Plusieurs bots peuvent enregistrer en même temps,
+      y compris sur un même serveur ; un bot ne peut être que dans un salon vocal à la fois par serveur.</p>
+    <div id="bots"></div>
+    <button type="button" id="addBot">+ Ajouter un bot</button>
+
+    <h2>Notion</h2>
+    <label for="NOTION_TOKEN">Jeton de l'intégration</label>
+    <div class="row"><input id="NOTION_TOKEN" type="password" placeholder="ntn_…" autocomplete="off"><button type="button" data-toggle="NOTION_TOKEN">Afficher</button></div>
+    <p class="hint">La page où créer les comptes rendus se choisit dans chaque profil (✎ Modifier).</p>
+
+    <h2>Résumé</h2>
+    <label for="OLLAMA_MODEL">Modèle local Ollama (gratuit)</label>
+    <input id="OLLAMA_MODEL" placeholder="ex. mistral-nemo">
+    <p class="hint">Si renseigné, le résumé est rédigé sur cet ordinateur par <a href="https://ollama.com" target="_blank">Ollama</a>,
+      que l'application télécharge (une seule fois, avec le modèle), lance et arrête toute seule. Vide : Claude est utilisé.</p>
+    <label for="ANTHROPIC_API_KEY">Clé API Anthropic (Claude)</label>
+    <div class="row"><input id="ANTHROPIC_API_KEY" type="password" placeholder="sk-ant-…" autocomplete="off"><button type="button" data-toggle="ANTHROPIC_API_KEY">Afficher</button></div>
+
+    <h2>Transcription</h2>
+    <label for="WHISPER_MODEL">Modèle Whisper</label>
+    <select id="WHISPER_MODEL">
+      <option value="">small (par défaut)</option>
+      <option value="base">base (plus rapide)</option>
+      <option value="medium">medium (plus précis, plus lent)</option>
+      <option value="large-v3">large-v3 (le plus précis, très lent sans carte graphique)</option>
+    </select>
+    <p class="hint">Un nouveau modèle est téléchargé au prochain démarrage.</p>
+    <label for="WHISPER_LANGUAGE">Langue des réunions</label>
+    <input id="WHISPER_LANGUAGE" placeholder="fr (par défaut) — « auto » pour détecter">
+
+    <div class="actions">
+      <button type="button" id="dataBtn">Dossier des réunions</button>
+      <button type="button" id="backBtn">Retour</button>
+      <button type="submit" class="primary" id="saveBtn">Enregistrer</button>
+    </div>
+  </form>
+</main>
+<script>
+const FIELDS = ["NOTION_TOKEN", "OLLAMA_MODEL", "ANTHROPIC_API_KEY", "WHISPER_MODEL", "WHISPER_LANGUAGE"];
+const $ = id => document.getElementById(id);
+const status = (text, cls = "") => { $("status").textContent = text; $("status").className = cls; };
+
+// L'API du lanceur (window.pywebview.api) n'existe que dans l'application de bureau.
+function api() {
+  return new Promise(resolve => {
+    if (window.pywebview?.api) return resolve(window.pywebview.api);
+    window.addEventListener("pywebviewready", () => resolve(window.pywebview.api), { once: true });
+    setTimeout(() => resolve(null), 3000);
+  });
+}
+
+function toggleSecret(btn, input) {
+  input.type = input.type === "password" ? "text" : "password";
+  btn.textContent = input.type === "password" ? "Afficher" : "Masquer";
+}
+
+// Une ligne par bot : nom, token, afficher, retirer (l'id relie le bot à ses profils)
+function addBotRow(bot = { id: "", name: "", token: "" }) {
+  const row = document.createElement("div");
+  row.className = "bot";
+  row.dataset.id = bot.id;
+  row.innerHTML = `<input class="name" placeholder="Nom (ex. Transcripteur)" aria-label="Nom du bot">
+    <input class="token" type="password" placeholder="Token du bot" autocomplete="off" aria-label="Token du bot">
+    <button type="button" class="show">Afficher</button>
+    <button type="button" class="remove" title="Retirer ce bot">Retirer</button>`;
+  row.querySelector(".name").value = bot.name;
+  row.querySelector(".token").value = bot.token;
+  row.querySelector(".show").onclick = (e) => toggleSecret(e.target, row.querySelector(".token"));
+  row.querySelector(".remove").onclick = () => {
+    if (confirm("Retirer ce bot ? Les profils qui l'utilisent devront en choisir un autre.")) row.remove();
+  };
+  $("bots").append(row);
+}
+
+(async () => {
+  const a = await api();
+  if (!a) {
+    status("Les réglages de connexion sont disponibles uniquement dans l'application de bureau.");
+    $("desktopHint").hidden = true;
+    $("saveBtn").disabled = true;
+    return;
+  }
+  const { values, bots } = await a.get_settings();
+  $("form").hidden = false;
+  $("desktopHint").hidden = true;
+  for (const k of FIELDS) $(k).value = values[k] ?? "";
+  bots.forEach(addBotRow);
+  if (!bots.length) addBotRow();
+})();
+
+document.querySelectorAll("[data-toggle]").forEach(btn => btn.onclick = () => toggleSecret(btn, $(btn.dataset.toggle)));
+$("addBot").onclick = () => addBotRow();
+$("backBtn").onclick = () => { location.href = "/" + location.search; };
+$("dataBtn").onclick = async () => { (await api())?.open_data_folder(); };
+
+$("form").onsubmit = async e => {
+  e.preventDefault();
+  const a = await api();
+  if (!a) return;
+  const values = {};
+  for (const k of FIELDS) values[k] = $(k).value.trim();
+  const bots = [...document.querySelectorAll(".bot")].map(row => ({
+    id: row.dataset.id, name: row.querySelector(".name").value, token: row.querySelector(".token").value,
+  }));
+  $("saveBtn").disabled = true;
+  try {
+    const { restart } = await a.save_settings(values, bots);
+    if (restart) {
+      status("Enregistré, redémarrage…", "ok");
+      await a.restart();
+    } else {
+      status("Aucun changement", "ok");
+      setTimeout(() => { location.href = "/" + location.search; }, 600);
+    }
+  } catch (err) {
+    status(`Échec : ${err.message || err}`, "error");
+    $("saveBtn").disabled = false;
+  }
+};
+</script>
+</body>
+</html>
