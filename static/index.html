@@ -1,0 +1,1003 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#375c4c">
+<title>Discord Transcript</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #b0bc99; --card: #fbf4df; --text: #2f4538; --muted: #66705a;
+    --subtle: #7f8266; --border: #d8d5b8; --field: #f1efda; --field-hover: #e5e6c9;
+    --accent: #375c4c; --accent-end: #6e8361; --accent-soft: #e4e8cc;
+    --accent-text: #fff8df; --gold: #ac793d; --gold-soft: #cdb987;
+    --rec: #b44e36; --rec-soft: #f3dbca; --ok: #61733f;
+    --bar: #9ea77d; --disabled: #e0e2c8; --disabled-text: #707b5c;
+    --halo: #e1e5b7; --rose: #e7cfa5; --mist: #bdcfb6;
+    --paper-line: #7f895314; --shadow: #1d332530; --scene-veil: #e9e5c90d;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #233a2f; --card: #263b31; --text: #f2e7c8; --muted: #b9bda0;
+    --subtle: #a3ad8b; --border: #4e624a; --field: #2f4437; --field-hover: #3c5340;
+    --accent: #c3d49d; --accent-end: #a6c493; --accent-soft: #3c523c;
+    --accent-text: #253b2f; --gold: #d0ae70; --gold-soft: #7b774d;
+    --rec: #db8b68; --rec-soft: #593c30; --ok: #b4cb8b;
+    --bar: #7b9466; --disabled: #40533d; --disabled-text: #b1bb94;
+    --halo: #405335; --rose: #503f2b; --mist: #314938;
+    --paper-line: #b0bc8315; --shadow: #0c211e70; --scene-veil: #162d2a65;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #233a2f; --card: #263b31; --text: #f2e7c8; --muted: #b9bda0;
+    --subtle: #a3ad8b; --border: #4e624a; --field: #2f4437; --field-hover: #3c5340;
+    --accent: #c3d49d; --accent-end: #a6c493; --accent-soft: #3c523c;
+    --accent-text: #253b2f; --gold: #d0ae70; --gold-soft: #7b774d;
+    --rec: #db8b68; --rec-soft: #593c30; --ok: #b4cb8b;
+    --bar: #7b9466; --disabled: #40533d; --disabled-text: #b1bb94;
+    --halo: #405335; --rose: #503f2b; --mist: #314938;
+    --paper-line: #b0bc8315; --shadow: #0c211e70; --scene-veil: #162d2a65;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; min-height: 100svh; padding: 24px 16px;
+    display: flex; flex-direction: column; align-items: center; color: var(--text);
+    background: var(--bg) url("/static/assets/woodland-background.png") center / cover no-repeat fixed;
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none;
+    background: var(--scene-veil);
+  }
+  button, input, textarea, select { font: inherit; }
+  button { border: 0; background: none; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  button:disabled { cursor: not-allowed; }
+  button, input, textarea { transition: background .2s, border-color .2s, box-shadow .2s, transform .2s; }
+  button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  svg { display: block; flex-shrink: 0; }
+  .icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; }
+  .sprite, [hidden] { display: none !important; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+  .widget {
+    position: relative; width: 100%; max-width: 480px; margin: auto;
+    background: radial-gradient(ellipse at top, #fff9e83b, transparent 60%), var(--card);
+    border: 1px solid var(--gold-soft); border-radius: 24px;
+    box-shadow: 0 20px 70px -18px #182e2460, 0 3px 10px var(--shadow), 0 0 0 5px #fbf4df30;
+    padding: 22px 22px 0; isolation: isolate;
+  }
+  .widget::before { content: ""; position: absolute; inset: 6px; border: 1px solid var(--border); border-radius: 18px; pointer-events: none; z-index: -1; }
+  .app-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+  .logo { display: grid; place-items: center; width: 39px; height: 43px; border-radius: 15px 15px 12px 12px; background: linear-gradient(145deg, var(--accent-end), var(--accent)); color: var(--accent-text); border: 1px solid var(--gold-soft); box-shadow: 0 4px 12px var(--shadow); }
+  .logo .icon { width: 22px; height: 22px; }
+  .brand h1 { font: 600 22px/1.2 Georgia, "Times New Roman", serif; letter-spacing: -.6px; margin: 0; }
+  .brand p { font-size: 11px; color: var(--muted); margin: 4px 0 0; }
+  .header-side { display: flex; align-items: center; gap: 8px; }
+  .gear { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid var(--border); border-radius: 50%; background: var(--field); color: var(--muted); }
+  .gear:hover { color: var(--accent); background: var(--field-hover); }
+  .gear .icon { width: 16px; height: 16px; }
+  .status { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; border: 1px solid var(--border); border-radius: 20px; background: var(--field); color: var(--muted); font-size: 11px; white-space: nowrap; }
+  .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--ok); }
+  .status.rec { color: var(--rec); background: var(--rec-soft); }
+  .status.busy { color: var(--accent); background: var(--accent-soft); }
+  .status.rec .dot, .status.busy .dot { background: currentColor; animation: blink 1.4s ease-in-out infinite; }
+  @keyframes blink { 50% { opacity: .3; } }
+  .profile-tabs { display: flex; gap: 4px; margin: 12px -4px 0; padding: 0 4px 2px; overflow-x: auto; scrollbar-width: thin; }
+  .profile-tab { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; max-width: 170px; padding: 7px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--field); color: var(--muted); font-size: 12px; }
+  .profile-tab:hover:not(.active) { color: var(--accent); background: var(--field-hover); }
+  .profile-tab.active { background: var(--card); color: var(--accent); border-color: var(--gold-soft); box-shadow: 0 1px 4px var(--shadow); font-weight: 550; }
+  .profile-tab.add { font-size: 14px; line-height: 1; }
+  .tab-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .live-dot { display: none; width: 6px; height: 6px; border-radius: 50%; background: var(--rec); flex-shrink: 0; animation: blink 1.4s ease-in-out infinite; }
+  .live .live-dot, .history .live-dot, .meeting-title .live-dot { display: inline-block; }
+  .no-profile { text-align: center; padding: 40px 10px; }
+  .no-profile h2 { font: italic 400 19px/1.4 Georgia, "Times New Roman", serif; color: var(--accent); margin: 0 0 6px; }
+  .no-profile p { font-size: 12px; color: var(--muted); margin: 0 auto; max-width: 300px; }
+  .profile-bar { display: flex; align-items: center; gap: 10px; margin: 12px 0 2px; }
+  .profile-summary { flex: 1; min-width: 0; margin: 0; font-size: 11px; color: var(--muted); }
+  .profile-summary .missing { color: var(--rec); }
+  .secondary.small, .primary.small { min-height: 32px; padding: 6px 10px; font-size: 11px; }
+  .secondary.danger { color: var(--rec); }
+  .profile-editor { margin: 10px 0 4px; padding: 6px 14px 14px; border: 1px solid var(--border); border-radius: 14px; background: var(--field); }
+  .profile-editor label { display: block; margin-top: 10px; font-size: 11px; font-weight: 600; color: var(--muted); }
+  .profile-editor input, .profile-editor select { width: 100%; margin-top: 4px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 9px; background: var(--card); color: var(--text); font-size: 12px; }
+  .profile-editor .hint { margin: 4px 0 0; font-size: 10px; color: var(--muted); }
+  .profile-editor .hint:empty { display: none; }
+  .editor-actions { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
+  .meeting-title { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 0 0 8px; font-size: 11px; color: var(--muted); }
+  .link { padding: 0; color: var(--accent); text-decoration: underline; font-size: inherit; }
+  .history { padding: 4px 0 18px; }
+  .history h2 { font: italic 400 16px/1.4 Georgia, "Times New Roman", serif; color: var(--accent); margin: 0 0 8px; }
+  .history ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-height: 320px; overflow-y: auto; }
+  .history button { width: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 9px 12px; border: 1px solid var(--border); border-radius: 11px; background: var(--field); text-align: left; }
+  .history button:hover, .history button.current { background: var(--field-hover); border-color: var(--gold-soft); }
+  .history-title { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 550; color: var(--text); }
+  .history-meta { font-size: 10px; color: var(--muted); }
+  .history-empty { font-size: 11px; color: var(--muted); margin: 0; }
+  .ornament { width: 100%; height: 12px; margin-top: 14px; color: var(--gold); opacity: .65; }
+  .recorder { position: relative; text-align: center; padding: 4px 0 18px; }
+  .recorder::before { content: ""; position: absolute; width: 240px; height: 190px; left: 50%; top: 14px; transform: translateX(-50%); background: radial-gradient(ellipse, var(--halo), transparent 70%); opacity: .5; pointer-events: none; z-index: -1; }
+  .viz { height: 34px; display: flex; align-items: center; justify-content: center; gap: 3px; margin-bottom: 2px; }
+  .viz span { width: 2px; height: var(--rest-height, 4px); border-radius: 3px; background: var(--bar); transition: background .2s; }
+  [data-state="recording"] .viz span { background: var(--accent); }
+  .timer { font: 400 48px/1.08 Georgia, "Times New Roman", serif; letter-spacing: -2px; font-variant-numeric: lining-nums tabular-nums; }
+  .caption { font-size: 12px; color: var(--muted); margin: 6px 0 20px; min-height: 18px; }
+  .buttons { display: flex; align-items: flex-start; justify-content: center; gap: 28px; position: relative; }
+  .control { display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 44px; font-size: 10px; color: var(--muted); }
+  .rec-btn {
+    position: relative; display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%;
+    background: radial-gradient(circle at 30% 20%, #ffe9b936, transparent 55%), linear-gradient(145deg, #c16946, #9f4935);
+    color: #fff4d3; border: 1px solid #efd4a0;
+    box-shadow: 0 0 0 5px var(--card), 0 0 0 6px var(--gold-soft), 0 7px 22px -6px #9f493580;
+  }
+  .rec-btn .icon { width: 26px; height: 26px; stroke-width: 1.6; }
+  .rec-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 0 0 5px var(--card), 0 0 0 6px var(--gold), 0 9px 25px -6px #9f493580; }
+  .rec-btn:active:not(:disabled) { transform: scale(.96); }
+  .rec-btn:disabled { opacity: .45; filter: grayscale(.6); }
+  .rec-btn::after { content: ""; position: absolute; inset: -7px; border: 1px solid var(--accent); border-radius: 50%; opacity: 0; pointer-events: none; }
+  [data-state="recording"] .rec-btn { background: var(--rec); color: var(--card); }
+  [data-state="recording"] .rec-btn::after { animation: ripple 1.8s ease-out infinite; }
+  @keyframes ripple { from { opacity: .5; transform: scale(1); } to { opacity: 0; transform: scale(1.35); } }
+  .record-label { color: var(--text); font-weight: 550; }
+  .stardust { position: absolute; pointer-events: none; color: var(--accent-end); stroke-width: 1.3; }
+  .star-one { width: 29px; height: 29px; top: 45px; left: 13%; transform: rotate(-10deg); color: var(--rec); }
+  .star-two { width: 18px; height: 18px; top: 61px; left: 21%; transform: rotate(25deg); }
+  .star-three { width: 24px; height: 24px; top: 59px; right: 17%; transform: rotate(10deg); }
+  .butterfly { width: 27px; height: 27px; top: 31px; right: 13%; transform: rotate(-18deg); color: var(--gold); }
+  .tabs { display: flex; gap: 4px; padding: 4px; border: 1px solid var(--border); background: var(--field); border-radius: 13px; }
+  .tabs button { display: flex; justify-content: center; align-items: center; gap: 7px; flex: 1; padding: 8px 6px; border-radius: 9px; font-size: 12px; color: var(--muted); min-width: 0; }
+  .tabs button .icon { width: 15px; height: 15px; }
+  .tabs button.active { background: var(--card); color: var(--accent); box-shadow: 0 1px 4px var(--shadow); }
+  .tabs button:hover:not(.active) { color: var(--accent); background: var(--field-hover); }
+  .badge { display: none; width: 5px; height: 5px; border-radius: 50%; background: var(--gold); }
+  .tabs button.has-new .badge { display: block; }
+  .panel { padding: 12px 0 16px; }
+  .editor { display: flex; position: relative; min-height: 212px; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; background: var(--field); }
+  .editor::after { content: "❧"; position: absolute; bottom: 10px; right: 14px; color: var(--gold); font-size: 17px; pointer-events: none; opacity: .65; }
+  .editor:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  textarea { width: 100%; min-height: 212px; resize: vertical; padding: 16px 18px; background: repeating-linear-gradient(transparent 0 27px, var(--paper-line) 27px 28px); background-position: 0 10px; color: var(--text); font-size: 13px; line-height: 28px; border: 0; outline: none; }
+  textarea:focus-visible { outline: none; }
+  .editor-empty { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; pointer-events: none; text-align: center; }
+  .quill { width: 40px; height: 40px; color: var(--accent-end); margin-bottom: 12px; stroke-width: 1; }
+  .editor-empty h2 { font: italic 400 19px/1.4 Georgia, "Times New Roman", serif; color: var(--accent); margin: 0 0 7px; }
+  .editor-empty p { max-width: 260px; font-size: 11px; line-height: 1.7; color: var(--muted); margin: 0; }
+  .editor:focus-within .editor-empty { display: none; }
+  .meta { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 9px 1px 0; color: var(--muted); font-size: 10px; }
+  #wordCount { white-space: nowrap; }
+  .actions { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
+  .spacer { flex: 1; }
+  .primary .icon, .secondary .icon { width: 15px; height: 15px; }
+  .primary { display: inline-flex; justify-content: center; align-items: center; gap: 7px; padding: 11px 14px; min-height: 40px; border-radius: 12px; background: linear-gradient(115deg, var(--accent), var(--accent-end)); color: var(--accent-text); font-size: 12px; font-weight: 550; box-shadow: 0 4px 12px var(--shadow); }
+  .primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 5px 16px var(--shadow); }
+  .primary:disabled { background: var(--disabled); color: var(--disabled-text); box-shadow: none; }
+  .secondary { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 10px 12px; min-height: 40px; border: 1px solid var(--border); border-radius: 11px; color: var(--accent); font-size: 12px; background: var(--field); }
+  .secondary:hover:not(:disabled) { background: var(--field-hover); }
+  .secondary:disabled { opacity: .45; }
+  .meta a { color: var(--accent); font-weight: 550; text-decoration: none; white-space: nowrap; }
+  .meta a:hover { text-decoration: underline; }
+  .meta .error { color: var(--rec); }
+  .summary { min-height: 212px; max-height: 50vh; overflow: auto; overflow-wrap: anywhere; font-size: 13px; line-height: 1.8; }
+  .summary h2 { font: 500 20px/1.3 Georgia, "Times New Roman", serif; color: var(--accent); margin: 22px 0 8px; }
+  .summary > h2:first-child { margin-top: 3px; }
+  .summary h3 { font-size: 13px; margin: 14px 0 5px; }
+  .summary p { margin: 7px 0; }
+  .summary ul { margin: 6px 0; padding-left: 18px; }
+  .summary li { margin: 5px 0; }
+  .summary li::marker { color: var(--gold); }
+  .summary li.task { list-style: none; position: relative; margin: 7px 0 7px -18px; padding: 8px 12px 8px 34px; background: var(--field); border-radius: 9px; }
+  .summary li.task::before { content: ""; position: absolute; left: 12px; top: 14px; width: 11px; height: 11px; border: 1px solid var(--gold); border-radius: 3px; }
+  .summary li.task.done::before { background: var(--accent); border-color: var(--accent); }
+  .summary blockquote { margin: 12px 0; padding: 8px 14px; background: var(--field); border-left: 2px solid var(--gold); border-radius: 0 8px 8px 0; color: var(--muted); }
+  .summary code { background: var(--field); padding: 2px 5px; border-radius: 4px; }
+  .empty { min-height: 212px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; background: var(--field); border: 1px solid var(--border); border-radius: 14px; }
+  .empty > .icon { width: 31px; height: 31px; color: var(--gold); margin-bottom: 11px; stroke-width: 1.1; }
+  .empty h3 { font: italic 400 19px/1.4 Georgia, "Times New Roman", serif; color: var(--accent); margin: 0 0 7px; }
+  .empty p { max-width: 290px; font-size: 11px; color: var(--muted); margin: 0; }
+  .summary-chips { display: flex; gap: 10px; justify-content: center; margin-top: 14px; font-size: 10px; color: var(--subtle); }
+  .summary-chips span + span::before { content: "·"; color: var(--gold); margin-right: 10px; }
+  .skeleton { display: grid; gap: 12px; padding: 8px; }
+  .skeleton div { height: 10px; border-radius: 5px; background: linear-gradient(90deg, var(--field), var(--field-hover), var(--field)); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+  .skeleton .h { width: 30%; height: 13px; margin-top: 16px; }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+  .app-footer { border-top: 1px solid var(--border); padding: 11px 0 15px; text-align: center; color: var(--muted); font-size: 9px; line-height: 1.7; }
+  .app-footer span { display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
+  .app-footer .icon { width: 10px; height: 10px; color: var(--gold); }
+  @media (max-width: 420px) {
+    body { padding: 14px 12px; }
+    .widget { padding: 20px 17px 0; border-radius: 24px; }
+    .widget::before { border-radius: 18px; }
+    .brand h1 { font-size: 19px; }
+    .brand p { font-size: 10px; }
+    .brand { gap: 9px; }
+    .logo { width: 34px; height: 39px; }
+    .status { font-size: 10px; padding: 5px 7px; }
+    .actions { gap: 9px; flex-wrap: wrap; }
+    .actions .primary { margin-left: auto; padding-inline: 12px; }
+    .app-header { flex-wrap: wrap; gap: 8px; }
+  }
+  @media (max-width: 350px) {
+    .actions .spacer { display: none; }
+    .actions .primary { width: 100%; }
+    .brand p { max-width: 165px; }
+    .meta { font-size: 9px; gap: 7px; }
+  }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-text" viewBox="0 0 24 24"><path d="M5 5h14M5 10h14M5 15h14M5 20h8"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M10 3l2.2 5.8L18 11l-5.8 2.2L10 19l-2.2-5.8L2 11l5.8-2.2zM19 2v5M16.5 4.5h5M20 16v6M17 19h6"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H3V3h12v2"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v13M7 11l5 5 5-5M4 17v4h16v-4"/></symbol>
+  <symbol id="i-headset" viewBox="0 0 24 24"><path d="M4 15v-3a8 8 0 0 1 16 0v3M4 15a2 2 0 0 0 2 2h1v-5H6a2 2 0 0 0-2 2zM20 15a2 2 0 0 1-2 2h-1v-5h1a2 2 0 0 1 2 2zM18 17v1a3 3 0 0 1-3 3h-2"/></symbol>
+  <symbol id="i-notion" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 16V8l6 8V8"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0v4M12 15v2"/></symbol>
+
+  <symbol id="i-feather" viewBox="0 0 32 32"><path d="M7 25C3 12 14 3 27 4c1 13-8 24-20 21ZM4 29 24 7M10 22v-7M15 17h7M19 13V8"/></symbol>
+
+  <symbol id="i-mushroom" viewBox="0 0 32 32"><path d="M3 19C2 10 9 4 16 4s14 6 13 15Z" fill="currentColor" fill-opacity=".15"/><path d="M13 19 11 28h10l-2-9M6 19h20"/><circle cx="12" cy="10" r="2" fill="currentColor" stroke="none"/><circle cx="23" cy="14" r="2" fill="currentColor" stroke="none"/><circle cx="7" cy="15" r="1" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-flower" viewBox="0 0 32 32"><path d="M16 12c-8-13-17 1-6 5-12 8 3 17 7 7 8 10 17-4 6-8C32 6 19 1 16 12Z" fill="currentColor" fill-opacity=".1"/><circle cx="17" cy="17" r="3"/></symbol>
+  <symbol id="i-sprig" viewBox="0 0 32 32"><path d="M6 29C8 19 14 11 26 3M11 19C2 19 3 8 3 8s12 2 8 11ZM17 12C12 3 21 1 21 1s4 7-4 11ZM14 16c5-7 15-4 15-4s-5 10-15 4ZM8 25c5-8 16-5 16-5s-7 9-16 5Z" fill="currentColor" fill-opacity=".12"/></symbol>
+  <symbol id="i-butterfly" viewBox="0 0 32 32"><path d="M16 25V10m0 1-4-6m4 6 4-6M15 15C6-3-6 10 7 19c-8 9 3 14 9 4M17 15C26-3 38 10 25 19c8 9-3 14-9 4" fill="currentColor" fill-opacity=".14"/></symbol>
+</svg>
+<div class="widget" id="widget" data-state="idle">
+  <header class="app-header">
+    <div class="brand">
+      <div class="logo"><svg class="icon" aria-hidden="true"><use href="#i-feather"/></svg></div>
+      <div><h1>Discord Transcript</h1><p>Transcription &amp; compte rendu de réunion</p></div>
+    </div>
+    <div class="header-side">
+      <div class="status" id="status" role="status"><span class="dot"></span><span id="statusText">Prêt</span></div>
+      <a class="gear" id="settingsLink" href="/static/settings.html" title="Réglages" aria-label="Réglages" hidden><svg class="icon" aria-hidden="true"><use href="#i-gear"/></svg></a>
+    </div>
+  </header>
+  <svg class="ornament" viewBox="0 0 430 12" fill="none" aria-hidden="true">
+    <path d="M0 6h178m74 0h178M194 6h9m24 0h9M215 1l5 5-5 5-5-5Z" stroke="currentColor" stroke-width=".7"/>
+    <circle cx="186" cy="6" r="1.1" fill="currentColor"/><circle cx="244" cy="6" r="1.1" fill="currentColor"/>
+  </svg>
+  <nav class="profile-tabs" id="profileTabs" role="tablist" aria-label="Profils d’enregistrement"></nav>
+  <main>
+    <section class="no-profile" id="noProfile" hidden>
+      <h2>Aucun profil</h2>
+      <p id="noProfileText"></p>
+    </section>
+    <div id="profileView" hidden>
+      <div class="profile-bar">
+        <p class="profile-summary" id="profileSummary"></p>
+        <button class="secondary small" id="editBtn" aria-expanded="false" aria-controls="profileEditor">✎ Modifier</button>
+      </div>
+      <section class="profile-editor" id="profileEditor" hidden aria-label="Réglages du profil">
+        <label for="pName">Nom de l’onglet</label>
+        <input id="pName" maxlength="40">
+        <label for="pBot">Bot Discord</label>
+        <select id="pBot"></select>
+        <label for="pChannel">Salon vocal</label>
+        <select id="pChannel"></select>
+        <p class="hint" id="pChannelHint"></p>
+        <label for="pNotion">Page Notion des comptes rendus</label>
+        <select id="pNotion"></select>
+        <p class="hint" id="pNotionHint"></p>
+        <label for="pContext">Contexte par défaut</label>
+        <input id="pContext" placeholder="Sujet, participants, ordre du jour… (aide le résumé)">
+        <div class="editor-actions">
+          <button class="secondary small danger" id="deleteProfileBtn">Supprimer le profil</button>
+          <span class="spacer"></span>
+          <button class="primary small" id="doneBtn">Terminé</button>
+        </div>
+      </section>
+      <section class="recorder" aria-label="Enregistrement">
+        <svg class="icon stardust star-one" aria-hidden="true"><use href="#i-mushroom"/></svg>
+        <svg class="icon stardust star-two" aria-hidden="true"><use href="#i-flower"/></svg>
+        <svg class="icon stardust star-three" aria-hidden="true"><use href="#i-sprig"/></svg>
+        <svg class="icon stardust butterfly" aria-hidden="true"><use href="#i-butterfly"/></svg>
+        <div class="viz" id="viz" aria-hidden="true"></div>
+        <div class="timer" id="timer" role="timer" aria-label="Durée de la réunion">00:00</div>
+        <p class="caption" id="caption"></p>
+        <div class="buttons">
+          <div class="control" id="recordControl">
+            <button class="rec-btn" id="recordBtn" aria-label="Enregistrer" title="Faire rejoindre le salon au bot et enregistrer"><svg class="icon" aria-hidden="true"><use href="#i-headset"/></svg></button>
+            <span class="record-label">Enregistrer</span>
+          </div>
+          <div class="control" id="stopControl" hidden>
+            <button class="rec-btn" id="stopBtn" aria-label="Terminer" title="Arrêter l’enregistrement"><svg class="icon" aria-hidden="true"><use href="#i-stop"/></svg></button>
+            <span class="record-label">Terminer</span>
+          </div>
+        </div>
+      </section>
+      <div id="notes" hidden>
+        <p class="meeting-title" id="meetingTitle"></p>
+        <div class="tabs" role="tablist" aria-label="Notes de la réunion">
+          <button id="tabTranscript" class="active" role="tab" aria-selected="true" aria-controls="panelTranscript" tabindex="0"><svg class="icon" aria-hidden="true"><use href="#i-text"/></svg>Transcription</button>
+          <button id="tabSummary" role="tab" aria-selected="false" aria-controls="panelSummary" tabindex="-1"><svg class="icon" aria-hidden="true"><use href="#i-spark"/></svg>Résumé<span class="badge"></span></button>
+        </div>
+        <section class="panel" id="panelTranscript" role="tabpanel" aria-labelledby="tabTranscript">
+          <div class="editor">
+            <textarea id="transcript" aria-label="Transcription de la réunion" aria-describedby="transcriptHint" spellcheck="true"></textarea>
+            <div class="editor-empty" id="transcriptEmpty" aria-hidden="true">
+              <svg class="icon quill"><use href="#i-feather"/></svg>
+              <h2>Vos mots prennent place ici…</h2>
+              <p>Chaque intervenant s’affiche ici,<br>au fil de la réunion.</p>
+            </div>
+          </div>
+          <div class="meta"><span id="transcriptHint"></span><span id="wordCount">0 mot</span></div>
+          <div class="actions">
+            <span class="spacer"></span>
+            <button class="primary" id="summarizeBtn" disabled><svg class="icon" aria-hidden="true"><use href="#i-spark"/></svg><span id="summarizeLabel">Générer le résumé</span></button>
+          </div>
+        </section>
+        <section class="panel" id="panelSummary" role="tabpanel" aria-labelledby="tabSummary" hidden>
+          <div class="summary" id="summary" aria-busy="false"></div>
+          <div class="meta"><span>Résumé par IA · À relire avant de partager</span><span id="notionStatus" role="status"></span></div>
+          <div class="actions">
+            <button class="secondary" id="notionBtn" hidden><svg class="icon" aria-hidden="true"><use href="#i-notion"/></svg><span id="notionLabel">Notion</span></button>
+            <span class="spacer"></span>
+            <button class="secondary" id="copyBtn" disabled><svg class="icon" aria-hidden="true"><use href="#i-copy"/></svg><span id="copyLabel">Copier</span></button>
+            <button class="secondary" id="downloadBtn" disabled><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg>Télécharger .md</button>
+          </div>
+        </section>
+      </div>
+      <section class="history" id="history" aria-labelledby="historyTitle">
+        <h2 id="historyTitle">Réunions de ce profil</h2>
+        <ul id="historyList"></ul>
+        <p class="history-empty" id="historyEmpty">Aucune réunion enregistrée avec ce profil pour l’instant.</p>
+      </section>
+    </div>
+  </main>
+  <footer class="app-footer">
+    <span><svg class="icon" aria-hidden="true"><use href="#i-lock"/></svg>Audio sur votre appareil</span>
+    <span aria-hidden="true"> · </span>
+    <span>Texte envoyé à l’IA configurée pour le résumé</span>
+  </footer>
+</div>
+<script>
+const VIZ_BARS = 36;
+const SAVE_DELAY_MS = 800;  // corrections enregistrées après une courte pause de frappe
+
+const $ = (id) => document.getElementById(id);
+
+// Clé d'accès transmise dans l'URL (?key=…) quand l'app est publiée, renvoyée à chaque appel
+const params = new URLSearchParams(location.search);
+const ACCESS_KEY = params.get("key") || "";
+function apiFetch(path, options = {}) {
+  const headers = { ...options.headers, ...(ACCESS_KEY && { "X-Access-Key": ACCESS_KEY }) };
+  return fetch(path, { ...options, headers });
+}
+function jsonBody(data, method = "POST") {
+  return { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) };
+}
+async function errorDetail(res) {
+  try { return (await res.json()).detail || res.status; } catch { return res.status; }
+}
+async function getJson(path) {
+  const res = await apiFetch(path);
+  if (!res.ok) throw new Error(await errorDetail(res));
+  return res.json();
+}
+const els = {
+  widget: $("widget"), status: $("status"), statusText: $("statusText"), profileTabs: $("profileTabs"),
+  noProfile: $("noProfile"), profileView: $("profileView"), profileSummary: $("profileSummary"),
+  editBtn: $("editBtn"), editor: $("profileEditor"), pName: $("pName"), pBot: $("pBot"), pChannel: $("pChannel"),
+  pChannelHint: $("pChannelHint"), pNotion: $("pNotion"), pNotionHint: $("pNotionHint"), pContext: $("pContext"),
+  timer: $("timer"), caption: $("caption"), viz: $("viz"),
+  record: $("recordBtn"), stop: $("stopBtn"), recordControl: $("recordControl"), stopControl: $("stopControl"),
+  history: $("history"), historyList: $("historyList"), historyEmpty: $("historyEmpty"),
+  notes: $("notes"), meetingTitle: $("meetingTitle"), transcript: $("transcript"), transcriptHint: $("transcriptHint"),
+  wordCount: $("wordCount"), summary: $("summary"), summarize: $("summarizeBtn"), copy: $("copyBtn"),
+  copyLabel: $("copyLabel"), download: $("downloadBtn"), tabT: $("tabTranscript"), tabS: $("tabSummary"),
+  notion: $("notionBtn"), notionLabel: $("notionLabel"), notionStatus: $("notionStatus"),
+  panelT: $("panelTranscript"), panelS: $("panelSummary"),
+};
+
+const store = {
+  get(k) { try { return localStorage.getItem(k) || ""; } catch { return ""; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+};
+
+// --- État ----------------------------------------------------------------------
+let profiles = [];        // profils (onglets), dans l'ordre de création
+let profileId = store.get("dt.profile") || null;  // onglet affiché
+let sessions = [];        // toutes les réunions (aperçu), les plus récentes d'abord
+const viewed = {};        // profil -> réunion choisie dans son historique (sinon : en cours ou dernière)
+let detail = null;        // réunion affichée, complète
+let botList = null;       // bots configurés et leurs serveurs (chargés à l'ouverture de l'éditeur)
+let botBusy = false;      // démarrage / arrêt du bot en cours
+let summarizing = null;   // id de la réunion dont on rédige le résumé ici
+let streamedSummary = "";
+let publishing = null;    // id de la réunion en cours d'envoi vers Notion
+let liveSince = 0;        // performance.now() de la dernière mesure de durée (réunion en cours)
+const seenSummary = new Map(); // id -> résumé déjà affiché (pastille « nouveau » sur l'onglet Résumé)
+let notionConfigured = false;
+
+const isLive = (s) => !!s && (s.active || s.pending > 0);
+const isFinishing = (s) => !!s && (s.summary_status === "running" || s.notion_status === "running");
+const currentProfile = () => profiles.find((p) => p.id === profileId) || null;
+
+// Une réunion appartient à son profil ; celles sans profil connu (anciennes, ou profil supprimé)
+// sont rangées dans le premier onglet.
+function belongsTo(s, p) {
+  return s.profile_id === p.id || (p === profiles[0] && !profiles.some((x) => x.id === s.profile_id));
+}
+const profileSessions = (p) => sessions.filter((s) => belongsTo(s, p));
+// Réunion affichée dans un onglet : celle choisie dans l'historique, sinon celle en cours, sinon la dernière
+function shownSessionId(p) {
+  const list = profileSessions(p);
+  const picked = viewed[p.id];
+  if (picked && list.some((s) => s.id === picked)) return picked;
+  return (list.find((s) => s.active) || list[0])?.id ?? null;
+}
+
+// --- Onde décorative (colorée pendant l'enregistrement) -----------------------
+for (let i = 0; i < VIZ_BARS; i++) {
+  const bar = els.viz.appendChild(document.createElement("span"));
+  const envelope = Math.sin((i + 1) / (VIZ_BARS + 1) * Math.PI);
+  const height = 4 + envelope * (9 + 24 * Math.pow(Math.sin(i * 1.7), 2));
+  bar.style.setProperty("--rest-height", height + "px");
+}
+
+// --- Dates et durées -----------------------------------------------------------
+const pad = (n) => String(n).padStart(2, "0");
+function clock(seconds) {
+  const s = Math.floor(seconds);
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+  return (h ? h + ":" : "") + pad(m) + ":" + pad(s % 60);
+}
+function when(ts) {
+  const d = new Date(ts * 1000);
+  const time = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  if (d.toDateString() === new Date().toDateString()) return `aujourd’hui ${time}`;
+  return `${d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" })} ${time}`;
+}
+function duration(seconds) {
+  const m = Math.round(seconds / 60);
+  return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${pad(m % 60)}`;
+}
+
+// --- Onglets de profils -----------------------------------------------------------
+function renderProfileTabs() {
+  const tabs = profiles.map((p) => {
+    const tab = document.createElement("button");
+    const live = profileSessions(p).some((s) => s.active);
+    tab.className = "profile-tab" + (p.id === profileId ? " active" : "") + (live ? " live" : "");
+    tab.setAttribute("role", "tab");
+    tab.setAttribute("aria-selected", String(p.id === profileId));
+    tab.title = live ? `${p.name} — enregistrement en cours` : p.name;
+    tab.innerHTML = `<span class="live-dot" aria-hidden="true"></span><span class="tab-label">${escapeHtml(p.name)}</span>`;
+    tab.onclick = () => selectProfile(p.id);
+    return tab;
+  });
+  const add = document.createElement("button");
+  add.className = "profile-tab add";
+  add.title = "Nouveau profil";
+  add.innerHTML = `<span aria-hidden="true">+</span><span class="sr-only">Nouveau profil</span>`;
+  add.onclick = createProfile;
+  els.profileTabs.replaceChildren(...tabs, add);
+}
+
+async function loadProfiles() {
+  try { profiles = await getJson("/api/profiles"); } catch { return; }
+  if (!currentProfile()) profileId = profiles[0]?.id ?? null;
+  store.set("dt.profile", profileId || "");
+}
+
+async function selectProfile(id) {
+  profileId = id;
+  store.set("dt.profile", id);
+  closeEditor();
+  await showSession();
+}
+
+async function createProfile() {
+  try {
+    const res = await apiFetch("/api/profiles", jsonBody({ name: "Nouveau profil" }));
+    if (!res.ok) throw new Error(await errorDetail(res));
+    const created = await res.json();
+    profiles.push(created);
+    await selectProfile(created.id);
+    openEditor();
+  } catch (e) {
+    alert("Création du profil impossible : " + e.message);
+  }
+}
+
+// --- Éditeur du profil (✎ Modifier) -------------------------------------------------
+function closeEditor() {
+  els.editor.hidden = true;
+  els.editBtn.setAttribute("aria-expanded", "false");
+}
+
+async function openEditor() {
+  const p = currentProfile();
+  if (!p) return;
+  els.editor.hidden = false;
+  els.editBtn.setAttribute("aria-expanded", "true");
+  els.pName.value = p.name;
+  els.pContext.value = p.context;
+  els.pName.focus();
+  els.pBot.replaceChildren(new Option("Chargement…", p.bot_id));
+  els.pChannel.replaceChildren(new Option(p.channel_name || "Chargement…", p.channel_id));
+  els.pNotion.replaceChildren(new Option(p.notion_title || (p.notion_page ? "Page choisie" : "Chargement…"), p.notion_page));
+  await Promise.all([loadBotChoices(p), loadNotionChoices(p)]);
+}
+
+async function loadBotChoices(p) {
+  try { botList = await getJson("/api/bots"); } catch { botList = []; }
+  const options = botList.map((b) => new Option(b.name, b.id));
+  if (!botList.length) options.push(new Option("Aucun bot : ajoute-en un dans ⚙ Réglages", ""));
+  else if (!botList.some((b) => b.id === p.bot_id)) options.unshift(new Option("Choisis un bot…", ""));
+  els.pBot.replaceChildren(...options);
+  els.pBot.value = botList.some((b) => b.id === p.bot_id) ? p.bot_id : "";
+  await loadChannelChoices(p);
+}
+
+async function loadChannelChoices(p) {
+  const hint = (text) => (els.pChannelHint.textContent = text);
+  if (!p.bot_id) { els.pChannel.replaceChildren(new Option("Choisis d’abord un bot", "")); hint(""); return; }
+  let channels;
+  try { channels = await getJson(`/api/bots/${p.bot_id}/channels`); }
+  catch (e) {
+    els.pChannel.replaceChildren(new Option(p.channel_name || "—", p.channel_id));
+    hint(String(e.message));
+    return;
+  }
+  const multiGuild = new Set(channels.map((c) => c.guild_id)).size > 1;
+  const options = channels.map((c) => {
+    const o = new Option(`${multiGuild ? c.guild + " · " : ""}🔊 ${c.name}`, c.id);
+    o.dataset.guild = c.guild_id;
+    o.dataset.label = `${c.guild} · ${c.name}`;
+    return o;
+  });
+  if (!channels.some((c) => c.id === p.channel_id)) options.unshift(new Option("Choisis un salon…", ""));
+  els.pChannel.replaceChildren(...options);
+  els.pChannel.value = channels.some((c) => c.id === p.channel_id) ? p.channel_id : "";
+  hint(channels.length ? "" : "Ce bot ne voit aucun salon vocal : invite-le sur ton serveur (voir le README).");
+}
+
+async function loadNotionChoices(p) {
+  const hint = (text) => (els.pNotionHint.textContent = text);
+  if (!notionConfigured) {
+    els.pNotion.replaceChildren(new Option("Notion non configuré (jeton dans ⚙ Réglages)", ""));
+    hint("");
+    return;
+  }
+  let pages;
+  try { pages = await getJson("/api/notion/pages"); }
+  catch (e) {
+    els.pNotion.replaceChildren(new Option(p.notion_title || "—", p.notion_page));
+    hint(String(e.message));
+    return;
+  }
+  const normalize = (id) => id.replace(/-/g, "").slice(-32);
+  const current = pages.find((pg) => normalize(pg.id) === normalize(p.notion_page || "x"));
+  const options = [new Option("Aucune (pas de publication dans Notion)", "")]
+    .concat(pages.map((pg) => new Option((pg.emoji ? pg.emoji + " " : "") + pg.title, pg.id)));
+  if (p.notion_page && !current) options.push(new Option("Page enregistrée (non partagée avec l’intégration)", p.notion_page));
+  els.pNotion.replaceChildren(...options);
+  els.pNotion.value = current ? current.id : p.notion_page;
+  // Page reprise d'un ancien réglage : on mémorise son titre pour l'onglet
+  if (current && p.notion_title !== current.title) saveProfile({ notion_page: current.id, notion_title: current.title });
+  hint("Une page manque ? Dans Notion : menu ••• de la page → Connexions → ajoute ton intégration.");
+}
+
+async function saveProfile(changes) {
+  const p = currentProfile();
+  if (!p) return;
+  Object.assign(p, changes);
+  render();
+  const res = await apiFetch(`/api/profiles/${p.id}`, jsonBody(changes, "PATCH")).catch(() => null);
+  if (!res?.ok) alert("Profil non enregistré : " + (res ? await errorDetail(res) : "serveur injoignable"));
+}
+
+let nameTimer = null, contextTimer = null;
+els.pName.addEventListener("input", () => {
+  clearTimeout(nameTimer);
+  nameTimer = setTimeout(() => saveProfile({ name: els.pName.value.trim() || "Sans nom" }), SAVE_DELAY_MS);
+});
+els.pContext.addEventListener("input", () => {
+  clearTimeout(contextTimer);
+  contextTimer = setTimeout(() => saveProfile({ context: els.pContext.value }), SAVE_DELAY_MS);
+});
+els.pBot.onchange = async () => {
+  await saveProfile({ bot_id: els.pBot.value, guild_id: "", channel_id: "", channel_name: "" });
+  await loadChannelChoices(currentProfile());
+};
+els.pChannel.onchange = () => {
+  const o = els.pChannel.selectedOptions[0];
+  saveProfile({ channel_id: o.value, guild_id: o.dataset.guild || "", channel_name: o.dataset.label || "" });
+};
+els.pNotion.onchange = () => {
+  const o = els.pNotion.selectedOptions[0];
+  saveProfile({ notion_page: o.value, notion_title: o.value ? o.text.replace(/^\p{Extended_Pictographic}️?\s/u, "") : "" });
+};
+els.editBtn.onclick = () => (els.editor.hidden ? openEditor() : closeEditor());
+$("doneBtn").onclick = closeEditor;
+$("deleteProfileBtn").onclick = async () => {
+  const p = currentProfile();
+  if (!p || !confirm(`Supprimer le profil « ${p.name} » ? Ses réunions restent enregistrées (dans le premier onglet).`)) return;
+  const res = await apiFetch(`/api/profiles/${p.id}`, { method: "DELETE" });
+  if (!res.ok) return alert("Suppression impossible : " + (await errorDetail(res)));
+  profiles = profiles.filter((x) => x.id !== p.id);
+  closeEditor();
+  await selectProfile(profiles[0]?.id ?? null);
+};
+
+// --- Réunion affichée dans l'onglet ----------------------------------------------------
+let textSessionId = null; // réunion dont la transcription est dans la zone de texte
+let saveTimer = null;
+
+function showDetail(d, fresh) {
+  const ta = els.transcript;
+  // Recopie la transcription tant qu'elle évolue (réunion en cours) ou quand on change de réunion ;
+  // ensuite, ce que l'on tape n'est pas écrasé par le rafraîchissement.
+  if (fresh || textSessionId !== d.id || ta.readOnly) {
+    const atBottom = ta.scrollTop + ta.clientHeight >= ta.scrollHeight - 20;
+    if (ta.value !== d.transcript) ta.value = d.transcript;
+    if (atBottom || fresh) ta.scrollTop = fresh && !isLive(d) ? 0 : ta.scrollHeight;
+    textSessionId = d.id;
+  }
+  ta.readOnly = isLive(d);
+  if (fresh) {
+    showTab(isLive(d) || !d.summary ? "transcript" : "summary");
+    seenSummary.set(d.id, d.summary);
+  } else if (seenSummary.get(d.id) !== d.summary) {
+    seenSummary.set(d.id, d.summary);
+    if (els.panelS.hidden && d.summary) els.tabS.classList.add("has-new");
+  }
+  liveSince = performance.now();
+}
+
+// Charge la réunion à afficher dans l'onglet courant (si elle a changé, ou pour la rafraîchir)
+async function showSession() {
+  const p = currentProfile();
+  const id = p ? shownSessionId(p) : null;
+  const fresh = id !== detail?.id;
+  if (fresh) {
+    detail = null;
+    textSessionId = null;
+    els.transcript.value = "";
+  }
+  if (id) {
+    try {
+      const d = await getJson(`/api/sessions/${id}`);
+      if (currentProfile() && shownSessionId(currentProfile()) === id) {
+        detail = d;
+        showDetail(d, fresh);
+      }
+    } catch {}
+  }
+  render();
+}
+
+els.transcript.addEventListener("input", () => {
+  if (!detail) return;
+  detail.transcript = els.transcript.value;
+  render();
+  const id = detail.id, value = els.transcript.value;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    const res = await apiFetch(`/api/sessions/${id}`, jsonBody({ transcript: value }, "PATCH")).catch(() => null);
+    if (res?.ok && detail?.id === id) { detail.edited = (await res.json()).edited; render(); }
+  }, SAVE_DELAY_MS);
+});
+
+// --- Affichage -------------------------------------------------------------------
+function setStatus(text, kind = "") {
+  els.statusText.textContent = text;
+  els.status.className = "status " + kind;
+}
+
+function profileSummary(p) {
+  const bot = botList?.find((b) => b.id === p.bot_id)?.name;
+  const parts = [
+    p.channel_name ? `🔊 ${escapeHtml(p.channel_name)}` : `<span class="missing">🔊 salon à choisir</span>`,
+    p.notion_page ? `📄 ${escapeHtml(p.notion_title || "page Notion")}` : "📄 pas de Notion",
+  ];
+  if (bot && (botList?.length ?? 0) > 1) parts.unshift(`🤖 ${escapeHtml(bot)}`);
+  return parts.join(" · ");
+}
+
+function render() {
+  renderProfileTabs();
+  const p = currentProfile();
+  els.noProfile.hidden = !!p;
+  els.profileView.hidden = !p;
+  const liveCount = sessions.filter((s) => s.active).length;
+  if (!p) {
+    $("noProfileText").textContent = "Clique sur + pour créer un profil : un bot, un salon vocal et une page Notion, "
+      + "mémorisés pour enregistrer en un clic.";
+    setStatus(liveCount ? `${liveCount} en cours` : "Prêt", liveCount ? "rec" : "");
+    return;
+  }
+  els.profileSummary.innerHTML = profileSummary(p);
+  renderHistory(p);
+
+  const d = detail;
+  const live = isLive(d);
+  const recording = !!d?.active;
+  const busySummary = !!d && (summarizing === d.id || d.summary_status === "running");
+  const busyNotion = !!d && (publishing === d.id || d.notion_status === "running");
+  const profileRecording = profileSessions(p).some((s) => s.active);
+
+  els.widget.dataset.state = recording ? "recording" : "idle";
+  els.recordControl.hidden = profileRecording;
+  els.stopControl.hidden = !recording;
+  els.record.disabled = botBusy || !p.channel_id || !p.bot_id;
+  els.stop.disabled = botBusy;
+  els.notes.hidden = !d;
+
+  // Durée : en direct pour une réunion en cours, totale sinon
+  els.timer.textContent = clock(d ? d.elapsed + (recording ? (performance.now() - liveSince) / 1000 : 0) : 0);
+
+  if (d) {
+    els.meetingTitle.innerHTML = `${recording ? '<span class="live-dot"></span>' : ""}${escapeHtml(d.channel)} — ${when(d.started_at)}`
+      + (shownSessionId(p) === d.id && viewed[p.id] && !d.active ? ` · <button class="link" id="latestBtn">revenir à la dernière</button>` : "");
+    $("latestBtn")?.addEventListener("click", () => { delete viewed[p.id]; showSession(); });
+    const text = els.transcript.value;
+    $("transcriptEmpty").hidden = !!text;
+    const words = (text.match(/\S+/g) || []).length;
+    els.wordCount.textContent = words + (words > 1 ? " mots" : " mot");
+    els.transcriptHint.textContent = live ? "Transcription en direct"
+      : d.edited ? "Corrigée à la main · enregistrée" : "Texte modifiable · corrections enregistrées";
+    els.summarize.disabled = live || busySummary || !text.trim();
+    $("summarizeLabel").textContent = busySummary ? "Rédaction en cours…" : d.summary ? "Refaire le résumé" : "Générer le résumé";
+
+    const md = summarizing === d.id ? streamedSummary
+      : d.summary || (d.summary_status === "error" ? `**Erreur :** ${d.summary_error}` : "");
+    els.summary.innerHTML = md.trim() ? renderMarkdown(md) : busySummary ? LOADING_SUMMARY : EMPTY_SUMMARY;
+    els.summary.setAttribute("aria-busy", String(busySummary));
+    els.copy.disabled = els.download.disabled = !d.summary || busySummary;
+    const notionPage = d.notion_page || p.notion_page;
+    els.notion.hidden = !notionConfigured;
+    els.notion.disabled = !notionPage || !d.summary || busySummary || busyNotion;
+    els.notion.title = !notionPage ? "Choisis la page Notion du profil (✎ Modifier)"
+      : d.notion_url ? "Créer une nouvelle page Notion avec ce compte rendu" : "Créer la page de la réunion dans Notion";
+    els.notionLabel.textContent = busyNotion ? "Envoi…" : "Notion";
+    els.notionStatus.innerHTML = d.notion_url
+      ? `<a href="${escapeHtml(d.notion_url)}" target="_blank" rel="noopener">Voir dans Notion ↗</a>`
+      : d.notion_status === "error" ? `<span class="error">${escapeHtml("Notion : " + d.notion_error)}</span>` : "";
+  }
+
+  if (busySummary) setStatus("Rédaction…", "busy");
+  else if (busyNotion) setStatus("Envoi Notion…", "busy");
+  else if (recording) setStatus("En direct", "rec");
+  else if (live) setStatus("Transcription…", "busy");
+  else if (liveCount) setStatus(`${liveCount} en cours`, "rec");
+  else setStatus("Prêt");
+
+  const speakers = d?.speakers.length ?? 0;
+  els.caption.textContent =
+    botBusy ? (recording ? "Arrêt de l’enregistrement…" : "Connexion du bot au salon…")
+    : recording ? `🔊 ${d.channel} · ${speakers} intervenant${speakers > 1 ? "s" : ""}`
+    : live ? "Finalisation de la transcription…"
+    : busySummary ? "Rédaction du compte rendu…"
+    : busyNotion ? "Ajout du compte rendu dans Notion…"
+    : profileRecording ? "Un enregistrement de ce profil est en cours (voir la liste ci-dessous)"
+    : !p.bot_id ? "Choisis un bot pour ce profil (✎ Modifier)"
+    : !p.channel_id ? "Choisis le salon vocal de ce profil (✎ Modifier)"
+    : `Prêt à enregistrer ${p.channel_name.split(" · ").pop()}`;
+}
+
+function renderHistory(p) {
+  const list = profileSessions(p);
+  const shown = shownSessionId(p);
+  els.historyList.replaceChildren(...list.map((s) => {
+    const li = document.createElement("li");
+    const btn = li.appendChild(document.createElement("button"));
+    btn.className = s.id === shown ? "current" : "";
+    const who = s.speakers.length ? ` · ${s.speakers.slice(0, 3).join(", ")}${s.speakers.length > 3 ? "…" : ""}` : "";
+    btn.innerHTML = `<span class="history-title">${s.active ? '<span class="live-dot"></span>' : ""}${when(s.started_at)}</span>`
+      + `<span class="history-meta">${escapeHtml(s.channel)} · ${s.active ? "en cours" : duration(s.elapsed)}${escapeHtml(who)}</span>`;
+    btn.onclick = () => { viewed[p.id] = s.id; showSession(); };
+    return li;
+  }));
+  els.historyEmpty.hidden = list.length > 0;
+}
+
+function showTab(which) {
+  const t = which === "transcript";
+  els.tabT.classList.toggle("active", t);
+  els.tabS.classList.toggle("active", !t);
+  els.tabT.setAttribute("aria-selected", String(t));
+  els.tabS.setAttribute("aria-selected", String(!t));
+  els.tabT.tabIndex = t ? 0 : -1;
+  els.tabS.tabIndex = t ? -1 : 0;
+  if (!t) els.tabS.classList.remove("has-new");
+  els.panelT.hidden = !t;
+  els.panelS.hidden = t;
+}
+els.tabT.onclick = () => showTab("transcript");
+els.tabS.onclick = () => showTab("summary");
+[els.tabT, els.tabS].forEach((tab) => tab.addEventListener("keydown", (event) => {
+  if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+  event.preventDefault();
+  const transcript = event.key === "Home" || (event.key !== "End" && tab === els.tabS);
+  showTab(transcript ? "transcript" : "summary");
+  (transcript ? els.tabT : els.tabS).focus();
+}));
+
+const EMPTY_SUMMARY = `
+  <div class="empty">
+    <svg class="icon" aria-hidden="true"><use href="#i-spark"/></svg>
+    <h3>L’essentiel de votre histoire.</h3>
+    <p>Le compte rendu est rédigé à la fin de la réunion. Vous pouvez aussi cliquer sur <strong>Générer le résumé</strong>.</p>
+    <div class="summary-chips"><span>Points clés</span><span>Décisions</span><span>Actions à mener</span></div>
+  </div>`;
+const LOADING_SUMMARY = `
+  <div class="skeleton">
+    <div class="h"></div><div></div><div style="width:85%"></div>
+    <div class="h"></div><div style="width:92%"></div><div style="width:70%"></div><div style="width:80%"></div>
+  </div>`;
+
+// --- Résumé (refait à la demande, enregistré dans la réunion) ------------------------
+async function generateSummary() {
+  const id = detail.id;
+  summarizing = id; streamedSummary = "";
+  showTab("summary"); render();
+  try {
+    const res = await apiFetch(`/api/sessions/${id}/summarize`, { method: "POST" });
+    if (!res.ok) throw new Error(await errorDetail(res));
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      streamedSummary += decoder.decode(value, { stream: true });
+      if (detail?.id === id) render();
+    }
+  } catch (e) {
+    streamedSummary += `\n\n**Erreur :** ${e.message}`;
+  }
+  if (streamedSummary.includes("**Erreur :**")) alert("Résumé impossible :" + streamedSummary.split("**Erreur :**")[1]);
+  summarizing = null;
+  await showSession();
+}
+els.summarize.onclick = generateSummary;
+
+// --- Notion : nouvelle page « Réunion du … » sous la page du profil ----------------
+async function publishNotion() {
+  const id = detail.id;
+  publishing = id; render();
+  try {
+    const res = await apiFetch(`/api/sessions/${id}/notion`, { method: "POST" });
+    if (!res.ok) throw new Error(await errorDetail(res));
+  } catch (e) {
+    alert("Envoi vers Notion impossible : " + e.message);
+  }
+  publishing = null;
+  await showSession();
+}
+els.notion.onclick = publishNotion;
+
+els.copy.onclick = async () => {
+  await navigator.clipboard.writeText(detail.summary);
+  els.copyLabel.textContent = "Copié ✓";
+  setTimeout(() => (els.copyLabel.textContent = "Copier"), 1500);
+};
+
+els.download.onclick = () => {
+  const date = new Date(detail.started_at * 1000).toISOString().slice(0, 10);
+  const md = `# ${currentProfile()?.name ?? "Réunion"} — ${detail.channel} — ${date}\n\n${detail.summary.trim()}`
+    + `\n\n---\n\n## Transcription\n\n${detail.transcript.trim()}\n`;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([md], { type: "text/markdown" }));
+  a.download = `compte-rendu-${date}-${detail.channel}.md`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+// --- Mini rendu Markdown (titres, listes, cases, citations, gras, code) ------
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function inline(s) {
+  return escapeHtml(s)
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/(^|[^*])\*([^*\s][^*]*)\*/g, "$1<em>$2</em>");
+}
+function renderMarkdown(md) {
+  const out = [];
+  let inList = false;
+  const closeList = () => { if (inList) { out.push("</ul>"); inList = false; } };
+  for (const raw of md.split("\n")) {
+    const line = raw.trimEnd();
+    let m;
+    if ((m = line.match(/^(#{1,3})\s+(.*)/))) {
+      closeList();
+      const level = Math.max(2, m[1].length);
+      out.push(`<h${level}>${inline(m[2])}</h${level}>`);
+    } else if ((m = line.match(/^\s*[-*]\s+\[( |x|X)\]\s+(.*)/))) {
+      if (!inList) { out.push("<ul>"); inList = true; }
+      out.push(`<li class="task${m[1].trim() ? " done" : ""}">${inline(m[2])}</li>`);
+    } else if ((m = line.match(/^\s*[-*]\s+(.*)/))) {
+      if (!inList) { out.push("<ul>"); inList = true; }
+      out.push(`<li>${inline(m[1])}</li>`);
+    } else if ((m = line.match(/^>\s?(.*)/))) {
+      closeList();
+      out.push(`<blockquote>${inline(m[1])}</blockquote>`);
+    } else if (!line.trim() || /^-{3,}$/.test(line)) {
+      closeList();
+    } else {
+      closeList();
+      out.push(`<p>${inline(line)}</p>`);
+    }
+  }
+  closeList();
+  return out.join("");
+}
+
+// --- Suivi des réunions -------------------------------------------------------------------
+async function refreshSessions() {
+  try { sessions = await getJson("/api/sessions"); } catch { return; }
+  const p = currentProfile();
+  const id = p ? shownSessionId(p) : null;
+  const overview = sessions.find((s) => s.id === id);
+  // Nouvelle réunion à afficher, ou réunion affichée qui évolue : on recharge son détail
+  if (id !== detail?.id || isLive(overview) || isFinishing(overview) || isLive(detail) || isFinishing(detail)) {
+    await showSession();
+  } else {
+    render();
+  }
+}
+
+async function poll() {
+  await refreshSessions();
+  const busy = sessions.some((s) => isLive(s) || isFinishing(s));
+  setTimeout(poll, busy ? 1500 : 4000);
+}
+// Durée qui défile pendant une réunion en cours
+setInterval(() => { if (detail?.active) els.timer.textContent = clock(detail.elapsed + (performance.now() - liveSince) / 1000); }, 250);
+
+// --- Lancement / arrêt du bot ---------------------------------------------------------
+async function startRecording() {
+  const p = currentProfile();
+  botBusy = true; render();
+  try {
+    const res = await apiFetch(`/api/profiles/${p.id}/record`, { method: "POST" });
+    if (!res.ok) throw new Error(await errorDetail(res));
+    delete viewed[p.id]; // affiche la nouvelle réunion
+    await refreshSessions();
+  } catch (e) {
+    alert("Impossible de lancer l’enregistrement : " + e.message);
+  } finally {
+    botBusy = false; render();
+  }
+}
+
+async function stopRecording() {
+  botBusy = true; render();
+  try {
+    const res = await apiFetch(`/api/sessions/${detail.id}/stop`, { method: "POST" });
+    if (!res.ok) throw new Error(await errorDetail(res));
+    await refreshSessions();
+  } catch (e) {
+    alert("Impossible d’arrêter l’enregistrement : " + e.message);
+  } finally {
+    botBusy = false; render();
+  }
+}
+
+els.record.onclick = startRecording;
+els.stop.onclick = stopRecording;
+
+// Réglages : seulement dans l'application de bureau (ils passent par son API)
+window.addEventListener("pywebviewready", () => { $("settingsLink").hidden = false; });
+if (window.pywebview?.api) $("settingsLink").hidden = false;
+
+(async () => {
+  try { notionConfigured = (await getJson("/api/notion/status")).configured; } catch {}
+  await loadProfiles();
+  render();
+  await poll();
+  getJson("/api/bots").then((b) => { botList = b; render(); }).catch(() => {});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+Use case: illustration-story.
+Asset type: original illustrated background for a compact meeting-notes web app.
+Primary request: an enchanted miniature woodland, combining the warmth of a vintage fairy garden storybook with the bold inked shapes and slightly mysterious, playful mood of an illustrated indie fantasy game.
+Scene: a lush mossy forest floor framed by curving tree trunks and branches, oversized vermilion fly-agaric mushrooms, tiny cream bellflowers, blue forget-me-nots, coral flowers, lime-green clover and ferns, a little snail, a few golden butterflies and floating pollen specks. A tiny friendly leaf-cloaked woodland sprite can peek from the lower left foliage.
+Style: beautiful hand-drawn editorial illustration, expressive dark olive ink contours, matte gouache-like flat color areas with subtle printed-paper texture, layered botanical details, charming and richly illustrated. No photorealism, no 3D.
+Composition: landscape 1536 by 1024. Artwork frames the LEFT and RIGHT sides and the BOTTOM edge. A broad calm, pale sage-green clearing occupies the central 40% of the composition, since an opaque narrow cream app card will sit over the center. Tall mushroom clusters at the lower corners, flowers and foliage trailing in from the edges, softly illuminated canopy overhead. Keep the interesting details visible OUTSIDE the central column.
+Palette: muted forest teal, moss and sage green, warm ivory, butter yellow, rust red and terracotta, touches of dusty sky blue. Rich natural contrast, not neon or pastel purple.
+Lighting/mood: dappled afternoon sunshine, a secret garden full of life, cozy fairytale with a hint of woodland mystery.
+Constraints: original illustration only. Absolutely no typography, words, letters, title, logo, watermark, UI panels, buttons or frames. No existing game characters, no lamb character, no crowns. No purple or pink magical gradients.
