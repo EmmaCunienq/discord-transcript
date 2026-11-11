@@ -18,6 +18,7 @@ import urllib.request
 from pathlib import Path
 
 APP_NAME = "Discord Transcript"
+APP_ID = "DiscordTranscript.Desktop"
 PORT = 8765          # fixe : la mémoire de la page (localStorage) dépend du port
 FROZEN = getattr(sys, "frozen", False)
 PROJECT_DIR = Path(__file__).resolve().parent.parent
@@ -34,6 +35,7 @@ LOG_FILE = DATA_DIR / "logs" / "app.log"
 SETTINGS_KEYS = ["OLLAMA_MODEL", "ANTHROPIC_API_KEY", "WHISPER_MODEL", "WHISPER_LANGUAGE", "NOTION_TOKEN"]
 # Réglages d'avant les profils, repris dans config.json (bots, profils) puis retirés du .env
 LEGACY_KEYS = ["DISCORD_TOKEN", "DISCORD_GUILD_ID", "NOTION_PAGE_ID"]
+DEFAULT_OLLAMA_MODEL = "mistral-nemo"  # bon en français, ~7 Go
 
 if not FROZEN:
     sys.path.insert(0, str(PROJECT_DIR))
@@ -50,22 +52,23 @@ def setup_logging() -> None:
     print(f"\n=== {APP_NAME} — {time.strftime('%Y-%m-%d %H:%M:%S')} ===")
 
 
-def first_launch_import() -> None:
-    """En développement, reprend le .env du projet s'il n'y a pas encore de réglages."""
+def first_launch_settings() -> None:
+    """Premiers réglages : le .env du projet en développement, sinon le résumé local par Ollama
+    (téléchargé et lancé par l'app, gratuit, rien n'est envoyé en ligne)."""
+    if ENV_FILE.exists():
+        return
     project_env = PROJECT_DIR / ".env"
-    if not ENV_FILE.exists() and not FROZEN and project_env.exists():
+    if not FROZEN and project_env.exists():
         ENV_FILE.write_bytes(project_env.read_bytes())
+    else:
+        ENV_FILE.write_text(f"OLLAMA_MODEL={DEFAULT_OLLAMA_MODEL}\n", encoding="utf-8")
 
 
 # --- Réglages (.env) ------------------------------------------------------------
 def read_env() -> dict[str, str]:
-    values = {}
-    if ENV_FILE.exists():
-        for line in ENV_FILE.read_text(encoding="utf-8-sig").splitlines():
-            key, sep, value = line.strip().partition("=")
-            if sep and key and not key.startswith("#"):
-                values[key.strip()] = value.strip().strip("\"'")
-    return values
+    from app import envfile
+
+    return envfile.read(ENV_FILE)
 
 
 def write_env(updates: dict[str, str]) -> None:
@@ -101,13 +104,20 @@ class Api:
             values["WHISPER_LANGUAGE"] = "auto"
         return {"values": values, "bots": config.bots()}
 
+    def set_window_theme(self, palette: dict) -> bool:
+        """Assortit le titre natif au thème affiché, sans redémarrer."""
+        from desktop.window_theme import apply_window_theme
+
+        return apply_window_theme(self._window, palette)
+
     def save_settings(self, values: dict, bots: list) -> dict:
         """Enregistre les réglages et les bots ; indique si un redémarrage est nécessaire."""
         from app import config
 
         updates: dict[str, str | None] = dict.fromkeys(LEGACY_KEYS)
         for k in SETTINGS_KEYS:
-            v = str(values.get(k, "")).strip().replace("\n", "")
+            # Caractères de contrôle retirés : un \r ou un \n ajouterait une ligne au .env
+            v = "".join(c for c in str(values.get(k, "")) if c.isprintable()).strip()
             if k == "WHISPER_LANGUAGE" and v.lower() == "auto":
                 updates[k] = ""      # présent mais vide = détection automatique
             else:
@@ -122,6 +132,13 @@ class Api:
         folder = DATA_DIR / "output" / "sessions"
         folder.mkdir(parents=True, exist_ok=True)
         os.startfile(folder)
+
+    def open_log_file(self) -> None:
+        os.startfile(LOG_FILE)
+
+    def quit_app(self) -> None:
+        if self._window:
+            self._window.destroy()
 
     def restart(self) -> None:
         cmd = [sys.executable] if FROZEN else [sys.executable, str(Path(__file__).resolve())]
@@ -192,6 +209,19 @@ def message_page(title: str, detail: str = "", spinner: bool = False) -> str:
 
 
 # --- Fenêtre ----------------------------------------------------------------------
+def set_app_identity() -> bool:
+    """Identifie l'app auprès de la barre des tâches avant toute création de fenêtre."""
+    if os.name != "nt":
+        return False
+    try:
+        set_id = ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID
+        set_id.argtypes = [ctypes.c_wchar_p]
+        set_id.restype = ctypes.c_long
+        return set_id(APP_ID) == 0
+    except (AttributeError, OSError):
+        return False
+
+
 def show_error_box(text: str) -> None:
     if os.name == "nt":
         ctypes.windll.user32.MessageBoxW(None, text, APP_NAME, 0x10)
@@ -201,7 +231,8 @@ def show_error_box(text: str) -> None:
 
 def main() -> None:
     setup_logging()
-    first_launch_import()
+    set_app_identity()
+    first_launch_settings()
 
     # Après « Enregistrer et redémarrer », l'ancienne instance libère les ports en quittant.
     wait = 20 if os.getenv("TRANSCRIPT_RESTART_WAIT") else 0
@@ -210,14 +241,12 @@ def main() -> None:
         return
 
     import webview
-    from webview.menu import Menu, MenuAction, MenuSeparator
 
     webview.settings["ALLOW_DOWNLOADS"] = True       # bouton « Télécharger .md »
     webview.settings["OPEN_EXTERNAL_LINKS_IN_BROWSER"] = True
 
     api = Api()
     server, thread = start_server()
-    base = f"http://127.0.0.1:{PORT}"
     window = webview.create_window(
         APP_NAME,
         html=message_page("Démarrage…", "Chargement du modèle de transcription. Au premier lancement, "
@@ -226,21 +255,10 @@ def main() -> None:
     )
     api._window = window
 
-    menu = [
-        Menu("Discord Transcript", [
-            MenuAction("Accueil", lambda: window.load_url(base + "/")),
-            MenuAction("Réglages…", lambda: window.load_url(base + "/static/settings.html")),
-            MenuSeparator(),
-            MenuAction("Ouvrir le dossier des réunions", api.open_data_folder),
-            MenuAction("Ouvrir le journal", lambda: os.startfile(LOG_FILE)),
-            MenuSeparator(),
-            MenuAction("Quitter", window.destroy),
-        ]),
-    ]
-
     webview.start(
         wait_until_ready, (window, server, thread),
-        menu=menu, private_mode=False, storage_path=str(DATA_DIR / "webview"),
+        private_mode=False, storage_path=str(DATA_DIR / "webview"),
+        icon=str(Path(getattr(sys, "_MEIPASS", PROJECT_DIR)) / "desktop" / "icon.ico"),
     )
 
     # Fenêtre fermée : arrêt propre du serveur (qui arrête aussi le bot Discord)

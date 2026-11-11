@@ -89,3 +89,30 @@ def test_profil_d_un_enregistrement_lance_depuis_discord(write_config):
     # Ni le salon ni le serveur : le premier profil du même bot
     assert config.match_profile("b1", "g5", "c5") == "meme-serveur"
     assert config.match_profile("b3", "g1", "c1") == ""
+
+
+def test_config_illisible_reprend_la_copie_de_secours(write_config, capsys):
+    write_config(bots=[{"id": "b1", "name": "Principal", "token": "t"}], profiles=[{"id": "p1", "name": "Atelier"}])
+    config.create_profile("Second")
+    CONFIG_FILE.write_text('{"bots": [', encoding="utf-8")  # fichier tronqué (modifié à la main, disque plein…)
+
+    assert [p["name"] for p in config.profiles()] == ["Atelier", "Second"]  # rien de perdu
+    assert [b["name"] for b in config.bots()] == ["Principal"]
+    assert config.BROKEN_FILE.read_text(encoding="utf-8") == '{"bots": ['  # gardé pour l'utilisateur
+    assert "config.json illisible" in capsys.readouterr().out
+
+
+def test_config_illisible_sans_sauvegarde_repart_a_vide():
+    CONFIG_FILE.write_bytes(b"\xff\xfe pas du json")
+    assert config.bots() == [] and config.profiles() == []
+    assert config.create_profile("Nouveau")["name"] == "Nouveau"  # l'app reste utilisable
+    assert config.BROKEN_FILE.exists()
+
+
+def test_config_incomplete_completee():
+    CONFIG_FILE.write_text('{"profiles": [{"id": "p1", "name": "Ancien"}, "intrus", {"name": "sans id"}],'
+                           ' "bots": [{"id": "b1", "token": "t"}, {"id": "b2"}]}', encoding="utf-8")
+    [profile] = config.profiles()
+    assert profile["id"] == "p1" and profile["name"] == "Ancien" and profile["channel_id"] == ""
+    assert config.bots() == [{"id": "b1", "token": "t", "name": "Bot"}]
+    assert not config.BROKEN_FILE.exists()

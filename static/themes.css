@@ -1,0 +1,217 @@
+/* Basique par défaut ; les décors et leurs palettes restent entièrement locaux. */
+  :root {
+    color-scheme: light;
+    --bg: #f0f2f5; --card: #ffffff; --text: #253043; --muted: #606d80;
+    --subtle: #68758a; --border: #dce1e9; --field: #f5f7fa; --field-hover: #e9eef6;
+    --accent: #375dc1; --accent-end: #375dc1; --accent-soft: #e8eefc;
+    --accent-text: #ffffff; --gold: #526c9b; --gold-soft: #c1cde2;
+    --rec: #b53646; --rec-soft: #fce8eb; --ok: #337759;
+    --bar: #8b9dbd; --disabled: #e8edf4; --disabled-text: #69778c;
+    --halo: transparent; --paper-line: transparent; --shadow: #1f35591c; --scene-veil: transparent;
+    --page-background: none; --surface-radius: 16px;
+    --display-font: "Segoe UI", sans-serif; --timer-font: "Segoe UI", sans-serif;
+    --timer-weight: 300;
+    --scroll-track: var(--field); --scroll-thumb: var(--bar); --scroll-hover: var(--accent);
+  }
+  :root[data-design="woodland"] {
+    --bg: #b0bc99; --card: #fbf4df; --text: #2f4538; --muted: #66705a;
+    --subtle: #7f8266; --border: #d8d5b8; --field: #f1efda; --field-hover: #e5e6c9;
+    --accent: #375c4c; --accent-end: #6e8361; --accent-soft: #e4e8cc;
+    --accent-text: #fff8df; --gold: #ac793d; --gold-soft: #cdb987;
+    --rec: #b44e36; --rec-soft: #f3dbca; --ok: #61733f;
+    --bar: #9ea77d; --disabled: #e0e2c8; --disabled-text: #707b5c;
+    --halo: #e1e5b7; --paper-line: #7f895314; --shadow: #1d332530; --scene-veil: #e9e5c90d;
+    --page-background: url("/static/assets/woodland-background.webp");
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-design]), :root[data-design="basic"] {
+      color-scheme: dark;
+      --bg: #141820; --card: #1e2430; --text: #e7ecf6; --muted: #a8b4c9;
+      --subtle: #9aa9c0; --border: #364052; --field: #262e3d; --field-hover: #313d50;
+      --accent: #a4c0ff; --accent-end: #a4c0ff; --accent-soft: #30415f;
+      --accent-text: #172442; --gold: #a4b9df; --gold-soft: #495b79;
+      --rec: #ff9aa9; --rec-soft: #4e2c3b; --ok: #8bd9b5;
+      --bar: #7998c8; --disabled: #313e52; --disabled-text: #a8b6ce; --shadow: #05091450;
+    }
+    :root[data-design="woodland"] {
+      color-scheme: dark;
+      --bg: #233a2f; --card: #263b31; --text: #f2e7c8; --muted: #b9bda0;
+      --subtle: #a3ad8b; --border: #4e624a; --field: #2f4437; --field-hover: #3c5340;
+      --accent: #c3d49d; --accent-end: #a6c493; --accent-soft: #3c523c;
+      --accent-text: #253b2f; --gold: #d0ae70; --gold-soft: #7b774d;
+      --rec: #db8b68; --rec-soft: #593c30; --ok: #b4cb8b;
+      --bar: #7b9466; --disabled: #40533d; --disabled-text: #b1bb94;
+      --halo: #405335; --paper-line: #b0bc8315; --shadow: #0c211e70; --scene-veil: #162d2a45;
+    }
+  }
+  :root[data-design="city"] {
+    color-scheme: dark;
+    --bg: #293047; --card: #252b40; --text: #f9ead9; --muted: #c0b4b5;
+    --subtle: #b4a7ae; --border: #4f4b60; --field: #30364e; --field-hover: #3c405b;
+    --accent: #edbd8d; --accent-end: #db9a88; --accent-soft: #494052;
+    --accent-text: #302837; --gold: #e1b58d; --gold-soft: #836857;
+    --rec: #ffa3a3; --rec-soft: #583749; --ok: #b8d4b1;
+    --bar: #b69081; --disabled: #41445a; --disabled-text: #bcb2bc;
+    --halo: #7e5261; --shadow: #11172860; --scene-veil: #22213a22;
+    --page-background: url("/static/assets/city-background.webp"); --surface-radius: 5px;
+    --display-font: Georgia, "Times New Roman", serif; --timer-font: Georgia, serif; --timer-weight: 400;
+  }
+  :root[data-design="mountain"] {
+    color-scheme: light;
+    --bg: #a5c4d1; --card: #f5f8f7; --text: #263f4c; --muted: #5b727b;
+    --subtle: #627780; --border: #c6d7db; --field: #e8f0f0; --field-hover: #dbe8e9;
+    --accent: #2c6268; --accent-end: #527d80; --accent-soft: #dceced;
+    --accent-text: #ffffff; --gold: #7f6846; --gold-soft: #adbea9;
+    --rec: #b24943; --rec-soft: #f6e1db; --ok: #3e715d;
+    --bar: #7ba4ad; --disabled: #dce7e7; --disabled-text: #677e83;
+    --halo: #c6e2e6; --shadow: #193e4b40; --scene-veil: #d8e7ed10;
+    --page-background: url("/static/assets/mountain-background.webp"); --surface-radius: 12px;
+    --display-font: Georgia, "Times New Roman", serif; --timer-font: Georgia, serif; --timer-weight: 400;
+  }
+  :root[data-design="ocean"] {
+    color-scheme: light;
+    --bg: #6bbfcf; --card: #fffaf0; --text: #254958; --muted: #5d757a;
+    --subtle: #657b7d; --border: #d4dfd5; --field: #eef2e8; --field-hover: #e0ece4;
+    --accent: #236f7b; --accent-end: #438e98; --accent-soft: #daedeb;
+    --accent-text: #ffffff; --gold: #9c6941; --gold-soft: #cbbd96;
+    --rec: #b7453c; --rec-soft: #fbe0d4; --ok: #3b7761;
+    --bar: #82b9bb; --disabled: #e0e9df; --disabled-text: #667e77;
+    --halo: #cce8e7; --shadow: #174f6540; --scene-veil: #e7f2e90a;
+    --page-background: url("/static/assets/ocean-background.webp"); --surface-radius: 28px;
+    --display-font: Georgia, "Times New Roman", serif; --timer-font: Georgia, serif; --timer-weight: 400;
+  }
+  :root[data-design="japan"] {
+    color-scheme: dark;
+    --bg: #394c4a; --card: #283c3b; --text: #f5e5d3; --muted: #c0c1b2;
+    --subtle: #b5bbae; --border: #50635b; --field: #334945; --field-hover: #415952;
+    --accent: #efb7a7; --accent-end: #d8a8a1; --accent-soft: #514c49;
+    --accent-text: #382f2d; --gold: #e4c18c; --gold-soft: #8a7d5e;
+    --rec: #ffa795; --rec-soft: #5a4037; --ok: #b5d39c;
+    --bar: #a1b3a1; --disabled: #46574e; --disabled-text: #bac2b0;
+    --halo: #766050; --shadow: #102b2b60; --scene-veil: #163c351c;
+    --page-background: url("/static/assets/japan-background.webp"); --surface-radius: 8px;
+    --display-font: Georgia, "Times New Roman", serif; --timer-font: Georgia, serif; --timer-weight: 400;
+  }
+
+  /* Piste et curseur suivent la palette, pour la page comme pour les panneaux. */
+  @supports (color: color-mix(in srgb, white, black)) {
+    :root {
+      --scroll-track: color-mix(in srgb, var(--card) 92%, var(--accent));
+      --scroll-thumb: color-mix(in srgb, var(--accent) 65%, var(--card));
+    }
+  }
+  * { scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) var(--scroll-track); }
+  @supports selector(::-webkit-scrollbar) {
+    /* Les propriétés standard priment sur les pseudo-éléments : les désactiver
+       ici permet de dessiner aussi les arrondis et les états dans WebView2. */
+    * { scrollbar-width: auto; scrollbar-color: auto; }
+    ::-webkit-scrollbar { width: 12px; height: 10px; }
+    ::-webkit-scrollbar-track { background: var(--scroll-track); border-radius: 999px; }
+    ::-webkit-scrollbar-thumb {
+      min-height: 32px; min-width: 32px; border: 3px solid var(--scroll-track);
+      border-radius: 999px; background: var(--scroll-thumb);
+    }
+    ::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
+    ::-webkit-scrollbar-thumb:active { background: var(--accent); }
+    ::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+    ::-webkit-scrollbar-corner { background: var(--scroll-track); }
+  }
+
+  /* Les surfaces restent opaques pour lire sans effort sur les illustrations. */
+  body::before { content: ""; position: fixed; inset: 0; pointer-events: none; background: var(--scene-veil); }
+  .settings-panel { position: relative; }
+  :root:not([data-design="woodland"]) :is(.widget, .settings-panel) {
+    background: var(--card); border-color: var(--border); border-radius: var(--surface-radius);
+    box-shadow: 0 18px 64px var(--shadow);
+  }
+  :root:not([data-design="woodland"]) .widget::before,
+  :root:not([data-design="woodland"]) .editor::after,
+  :root:not([data-design="woodland"]) :is(.stardust, .ornament) { display: none; }
+  :root:not([data-design="woodland"]) :is(.brand h1, .history h2, .summary h2, .empty h3, .editor-empty h2, .no-profile h2, .settings-panel h1) {
+    font-family: var(--display-font); font-style: normal; font-weight: 500;
+  }
+  :root:not([data-design="woodland"]) .timer { font-family: var(--timer-font); font-weight: var(--timer-weight); letter-spacing: -1.5px; }
+  :root:not([data-design="woodland"]) .rec-btn {
+    background: linear-gradient(135deg, var(--accent), var(--accent-end)); color: var(--accent-text);
+    border-color: transparent; box-shadow: 0 0 0 6px var(--accent-soft), 0 8px 25px var(--shadow);
+  }
+  :root:not([data-design="woodland"]) .rec-btn:hover:not(:disabled) { box-shadow: 0 0 0 7px var(--accent-soft), 0 10px 28px var(--shadow); }
+  :root:not([data-design="woodland"]) [data-state="recording"] .rec-btn { background: var(--rec); color: var(--card); }
+  :root[data-design="basic"] .widget { box-shadow: 0 8px 32px var(--shadow); }
+  :root:is([data-design="city"], [data-design="japan"]) .widget::before {
+    display: block; inset: 6px; border: 1px solid var(--gold-soft); border-radius: 2px; opacity: .45;
+  }
+  :root:is([data-design="city"], [data-design="japan"]) :is(.tabs, .profile-editor, .editor) { border-radius: 5px; }
+  .theme-ornament { display: none; width: 100%; height: 26px; margin-top: 12px; color: var(--gold); fill: none; stroke: currentColor; stroke-width: 1; opacity: .65; }
+  :root[data-design="city"] .theme-ornament-city,
+  :root[data-design="mountain"] .theme-ornament-mountain,
+  :root[data-design="ocean"] .theme-ornament-ocean,
+  :root[data-design="japan"] .theme-ornament-japan { display: block; }
+
+  [hidden] { display: none !important; }
+  .settings-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .settings-top .back-link { margin-bottom: 0; }
+  .app-menu { position: relative; z-index: 20; }
+  .header-side { margin-left: auto; }
+  .app-menu-trigger {
+    display: grid; place-items: center; width: 32px; height: 32px; list-style: none; cursor: pointer;
+    border: 1px solid var(--border); border-radius: 10px; background: var(--field); color: var(--muted);
+  }
+  .app-menu-trigger::-webkit-details-marker { display: none; }
+  .app-menu-trigger:hover, .app-menu[open] > summary { color: var(--accent); background: var(--accent-soft); border-color: var(--gold-soft); }
+  .app-menu-trigger:focus-visible, .app-menu-panel :is(a, button):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .app-menu svg { width: 18px; height: 18px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .app-menu-panel {
+    position: absolute; top: calc(100% + 10px); right: 0; width: 264px; max-width: calc(100vw - 48px);
+    padding: 8px; border: 1px solid var(--border); border-radius: 16px;
+    background: var(--card); color: var(--text); box-shadow: 0 14px 40px var(--shadow);
+  }
+  .app-menu-heading { margin: 4px 12px 8px; color: var(--muted); font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+  .app-menu-panel :is(a, button) {
+    display: flex; align-items: center; gap: 12px; width: 100%; min-height: 42px; margin: 0;
+    padding: 10px 12px; border: 0; border-radius: 9px; background: transparent; color: inherit;
+    font: 13px/1.4 "Segoe UI", sans-serif; text-align: left; text-decoration: none; cursor: pointer;
+  }
+  .app-menu-panel :is(a, button):hover { background: var(--field-hover); }
+  .app-menu-panel [aria-current="page"] { color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+  .app-menu-panel .app-menu-quit { color: var(--rec); }
+  .app-menu-panel button:disabled { opacity: .5; cursor: wait; }
+  .app-menu-divider { height: 1px; margin: 6px 10px; background: var(--border); }
+  .app-menu-error { margin: 8px 12px; font-size: 12px; color: var(--rec); }
+  .back-link { display: inline-block; margin-bottom: 18px; color: var(--accent); text-decoration: none; font-size: 12px; }
+  .back-link:hover { text-decoration: underline; }
+  .appearance { border: 0; border-bottom: 1px solid var(--border); padding: 0 0 22px; margin: 24px 0 18px; min-width: 0; }
+  .appearance legend { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; padding: 0; }
+  .theme-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+  .theme-option { position: relative; margin: 0; cursor: pointer; min-width: 0; }
+  .theme-option input { position: absolute; width: 1px; height: 1px; opacity: 0; padding: 0; margin: 0; }
+  .theme-choice { display: block; padding: 9px; border: 1px solid var(--border); border-radius: 13px; background: var(--field); }
+  .theme-option input:checked + .theme-choice { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); background: var(--accent-soft); }
+  .theme-option input:focus-visible + .theme-choice { outline: 3px solid var(--accent); outline-offset: 4px; }
+  .theme-name { display: flex; align-items: center; justify-content: space-between; margin: 8px 2px 0; font-weight: 600; }
+  .theme-check { visibility: hidden; color: var(--accent); }
+  .theme-option input:checked + .theme-choice .theme-check { visibility: visible; }
+  .theme-detail { display: block; margin: 2px; font-size: 11px; color: var(--muted); font-weight: 400; }
+  .theme-notice { min-height: 36px; padding-top: 10px; }
+  .theme-preview { display: grid; place-items: center; height: 116px; border-radius: 7px; overflow: hidden; }
+  .preview-basic { --preview-card: #ffffff; --preview-accent: #375dc1; background: #e7ebf2; }
+  .preview-woodland { --preview-card: #fbf4df; --preview-accent: #375c4c; background: #b0bc99 url('/static/assets/woodland-preview.webp') center / cover; }
+  .preview-city { --preview-card: #252b40; --preview-accent: #edbd8d; background: #293047 url('/static/assets/city-preview.webp') center / cover; }
+  .preview-mountain { --preview-card: #f5f8f7; --preview-accent: #2c6268; background: #a5c4d1 url('/static/assets/mountain-preview.webp') center / cover; }
+  .preview-ocean { --preview-card: #fffaf0; --preview-accent: #236f7b; background: #6bbfcf url('/static/assets/ocean-preview.webp') center / cover; }
+  .preview-japan { --preview-card: #283c3b; --preview-accent: #efb7a7; background: #394c4a url('/static/assets/japan-preview.webp') center / cover; }
+  .preview-window { display: grid; justify-items: center; gap: 7px; width: 100px; padding: 10px; border-radius: 10px; background: var(--preview-card); box-shadow: 0 4px 10px #0002; }
+  :is(.preview-city, .preview-japan) .preview-window { border-radius: 2px; }
+  .preview-ocean .preview-window { border-radius: 14px; }
+  .preview-line { width: 62px; height: 4px; background: var(--preview-accent); border-radius: 3px; }
+  .preview-record { width: 19px; height: 19px; border-radius: 50%; background: var(--preview-accent); }
+  .preview-panel { width: 100%; height: 17px; border: 1px solid var(--preview-accent); opacity: .4; border-radius: 3px; }
+  @media (max-width: 480px) {
+    .settings-panel { padding: 20px 16px; }
+    .bot { grid-template-columns: 1fr 1fr; }
+    .row { flex-wrap: wrap; }
+  }
+  @media (max-width: 340px) { .theme-grid { grid-template-columns: 1fr; } }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }

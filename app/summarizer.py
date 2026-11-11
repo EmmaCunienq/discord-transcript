@@ -8,11 +8,12 @@ from collections.abc import Iterator
 
 import anthropic
 
+from . import local_ai
+
 MODEL = os.getenv("CLAUDE_MODEL", "claude-opus-5-5")
 
 # Si OLLAMA_MODEL est défini, le résumé est rédigé en local par Ollama plutôt que par Claude
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "")
-OLLAMA_URL = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
 OLLAMA_NUM_CTX = int(os.getenv("OLLAMA_NUM_CTX", "32768"))
 OLLAMA_MAX_OUTPUT = 4096
 
@@ -59,17 +60,25 @@ class SummaryError(Exception):
 
 def summarize(transcript: str, context: str = "") -> str:
     """Résumé complet (utilisé en fin de réunion Discord) ; lève SummaryError en cas d'échec."""
+    if OLLAMA_MODEL:
+        local_ai.wait_ready()  # fin de réunion pendant le premier téléchargement : on attend plutôt qu'échouer
     return "".join(generate(transcript, context)).strip()
 
 
 def _generate_ollama(user_content: str) -> Iterator[str]:
+    state = local_ai.status()
+    if state["phase"] == "error":
+        raise SummaryError(f"Ollama indisponible : {state['error']}")
+    if state["phase"] not in ("ready", "off"):  # off : Ollama non géré par l'app (lancé à part)
+        progress = f" ({state['progress']:.0%})" if state["progress"] is not None else ""
+        raise SummaryError(f"le résumé local se prépare — {state['detail']}{progress} Réessaie dans un moment.")
     # Ollama tronque sans prévenir ce qui dépasse num_ctx : mieux vaut refuser qu'un résumé
     # qui ignore une partie de la réunion. Estimation prudente : 3 caractères par token.
     if (len(SYSTEM_PROMPT) + len(user_content)) / 3 > OLLAMA_NUM_CTX - OLLAMA_MAX_OUTPUT:
         raise SummaryError("transcription trop longue pour le modèle local (augmente `OLLAMA_NUM_CTX`).")
 
     req = urllib.request.Request(
-        f"{OLLAMA_URL}/api/chat",
+        f"{local_ai.OLLAMA_URL}/api/chat",
         data=json.dumps({
             "model": OLLAMA_MODEL,
             "stream": True,

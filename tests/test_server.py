@@ -9,8 +9,9 @@ from tests.test_sessions import wait_until
 
 @pytest.fixture
 def client():
-    # Sans « with » : les événements de démarrage (modèle Whisper, bots) ne sont pas lancés
-    return TestClient(server.app)
+    # Sans « with » : les événements de démarrage (modèle Whisper, bots) ne sont pas lancés.
+    # Adresse locale, comme la fenêtre de l'app et les bots (le serveur refuse les autres noms d'hôte).
+    return TestClient(server.app, base_url="http://127.0.0.1:8765")
 
 
 @pytest.fixture
@@ -41,6 +42,38 @@ def test_cle_d_acces_quand_l_app_est_publiee(client, monkeypatch):
     assert client.get("/api/profiles", headers={"X-Access-Key": "secret"}).status_code == 200
     assert client.get("/?key=secret").status_code == 200
     assert client.get("/static/settings.html").status_code == 200  # fichiers statiques libres
+    # Publiée derrière un nom de domaine : la clé suffit, le nom d'hôte n'est pas limité
+    published = TestClient(server.app, base_url="https://transcript.example")
+    assert published.get("/api/profiles", headers={"X-Access-Key": "secret"}).status_code == 200
+
+
+def test_app_locale_refuse_les_autres_noms_d_hote(client):
+    """Un site qui ferait pointer son domaine sur 127.0.0.1 (DNS rebinding) ne lit rien."""
+    for host in ("evil.example", "evil.example:8765", "127.0.0.1.evil.example"):
+        res = client.get("/api/sessions", headers={"Host": host})
+        assert res.status_code == 403, host
+    for host in ("127.0.0.1:8765", "localhost:8765", "[::1]:8765"):
+        assert client.get("/api/sessions", headers={"Host": host}).status_code == 200, host
+
+
+def test_app_locale_refuse_les_envois_d_un_autre_site(client, write_config, bot_calls):
+    """Une page web ouverte dans le navigateur ne peut pas lancer d'enregistrement."""
+    write_config(profiles=[{"id": "p1", "bot_id": "b1", "channel_id": "c1"}])
+    for origin in ("https://evil.example", "http://127.0.0.1:9999", "null"):
+        res = client.post("/api/profiles/p1/record", headers={"Origin": origin})
+        assert res.status_code == 403, origin
+    assert bot_calls[0] == []
+    # La page elle-même (même origine) et les bots (sans en-tête Origin) sont acceptés
+    assert client.post("/api/profiles/p1/record", headers={"Origin": "http://127.0.0.1:8765"}).status_code == 200
+    assert client.post("/api/profiles/p1/record").status_code == 200
+    # Lecture : rien à protéger côté envoi, le nom d'hôte suffit
+    assert client.get("/api/profiles", headers={"Origin": "https://evil.example"}).status_code == 200
+
+
+def test_fonds_des_themes_servis_en_webp(client):
+    res = client.get("/static/assets/japan-background.webp")
+    assert res.status_code == 200 and res.headers["content-type"] == "image/webp"
+    assert len(res.content) < 600_000
 
 
 # --- Profils ------------------------------------------------------------------------
@@ -145,6 +178,31 @@ def test_suivi_d_une_reunion_de_bout_en_bout(client, monkeypatch, no_background_
     assert [s["id"] for s in client.get("/api/sessions").json()] == [sid]
 
 
+def test_prise_de_parole_invalide_refusee(client, no_background_finish):
+    sid = start_session(client)["id"]
+    url = f"/api/discord/sessions/{sid}/utterances"
+    form = {"sample_rate": "48000", "user_id": "u1", "speaker": "Marc", "start_ms": "0"}
+    assert client.post(url, files={"audio": ("a.s16", b"\0" * 3)}, data=form).status_code == 400  # octets impairs
+    too_long = b"\0\0" * (server.MAX_UTTERANCE_BYTES // 2 + 1)
+    assert client.post(url, files={"audio": ("a.s16", too_long)}, data=form).status_code == 400
+    for field, value in (("sample_rate", "0"), ("sample_rate", "-48000"), ("start_ms", "-1")):
+        res = client.post(url, files={"audio": ("a.s16", b"\0\0")}, data={**form, field: value})
+        assert res.status_code == 422, (field, value)
+    assert discord_sessions.get(sid).pending == 0
+
+
+def test_participants_presents_signales_par_le_bot(client):
+    sid = start_session(client)["id"]
+    res = client.post(f"/api/discord/sessions/{sid}/participants", json={"names": ["Marc", "Ana"]})
+    assert res.json() == {"participants": ["Ana", "Marc"]}
+    assert client.get(f"/api/sessions/{sid}").json()["participants"] == ["Ana", "Marc"]
+    # Une fois la réunion terminée, la liste ne bouge plus
+    client.post(f"/api/discord/sessions/{sid}/stop")
+    client.post(f"/api/discord/sessions/{sid}/participants", json={"names": []})
+    assert client.get(f"/api/sessions/{sid}").json()["participants"] == ["Ana", "Marc"]
+    assert client.post("/api/discord/sessions/nope/participants", json={"names": []}).status_code == 404
+
+
 def test_reunion_inconnue(client):
     assert client.get("/api/sessions/nope").status_code == 404
     assert client.post("/api/discord/sessions/nope/stop").status_code == 404
@@ -174,3 +232,14 @@ def test_notion_statut_et_pages(client, monkeypatch):
     monkeypatch.setattr(notion, "search_pages", lambda: [{"id": "1", "title": "Réunions", "emoji": ""}])
     assert client.get("/api/notion/status").json() == {"configured": True}
     assert client.get("/api/notion/pages").json()[0]["title"] == "Réunions"
+
+
+def test_etat_du_resume_local(client, monkeypatch):
+    from app import local_ai
+    monkeypatch.setattr(summarizer, "OLLAMA_MODEL", "mistral-nemo")
+    monkeypatch.setitem(local_ai._state, "phase", "pulling")
+    monkeypatch.setitem(local_ai._state, "progress", 0.5)
+    state = client.get("/api/local-ai").json()
+    assert (state["enabled"], state["phase"], state["progress"]) == (True, "pulling", 0.5)
+    monkeypatch.setattr(summarizer, "OLLAMA_MODEL", "")
+    assert client.get("/api/local-ai").json()["enabled"] is False

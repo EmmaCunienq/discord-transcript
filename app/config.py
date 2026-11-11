@@ -9,8 +9,12 @@ import json
 import os
 import threading
 import uuid
+from pathlib import Path
 
 from .paths import CONFIG_FILE
+
+BACKUP_FILE = CONFIG_FILE.with_name("config.backup.json")
+BROKEN_FILE = CONFIG_FILE.with_name("config.broken.json")
 
 # channel_name / notion_title : libellés affichés dans l'onglet, mémorisés au moment du choix
 PROFILE_FIELDS = ("name", "bot_id", "guild_id", "channel_id", "channel_name", "notion_page", "notion_title", "context")
@@ -26,17 +30,45 @@ def _blank_profile(name: str, bot_id: str) -> dict:
     return {"id": _new_id(), "name": name, "bot_id": bot_id, **dict.fromkeys(PROFILE_FIELDS[2:], "")}
 
 
+def _load(path: Path) -> dict:
+    """Contenu d'un config.json, complété au besoin ; ValueError s'il est illisible."""
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict) or not all(isinstance(data.get(k, []), list) for k in ("bots", "profiles")):
+        raise ValueError("structure inattendue")
+    bots = [b for b in data.get("bots", []) if isinstance(b, dict) and b.get("id") and b.get("token")]
+    for b in bots:
+        b.setdefault("name", "Bot")
+    profiles = [{**_blank_profile("Profil", ""), **p} for p in data.get("profiles", [])
+                if isinstance(p, dict) and p.get("id")]
+    return {"bots": bots, "profiles": profiles}
+
+
 def _read() -> dict:
+    """Configuration actuelle. Un fichier abîmé (modifié à la main, disque plein…) est mis de côté dans
+    config.broken.json et remplacé par sa copie de secours (config.backup.json) : l'app continue."""
     if not CONFIG_FILE.exists():
         return {"bots": [], "profiles": []}
-    return json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
+    try:
+        return _load(CONFIG_FILE)
+    except (OSError, UnicodeDecodeError, ValueError) as e:
+        CONFIG_FILE.replace(BROKEN_FILE)
+        try:
+            data, origin = _load(BACKUP_FILE), "copie de secours reprise"
+        except (OSError, UnicodeDecodeError, ValueError):
+            data, origin = {"bots": [], "profiles": []}, "aucune sauvegarde valide, configuration vide"
+        print(f"[config] {CONFIG_FILE.name} illisible ({e}) : copié dans {BROKEN_FILE.name}, {origin}.")
+        _write(data)
+        return data
 
 
 def _write(data: dict) -> None:
+    """Écriture atomique, puis copie de secours identique (reprise si config.json est abîmé)."""
     CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
-    tmp = CONFIG_FILE.with_suffix(".tmp")
-    tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
-    tmp.replace(CONFIG_FILE)
+    text = json.dumps(data, ensure_ascii=False, indent=2)
+    for path in (CONFIG_FILE, BACKUP_FILE):
+        tmp = path.with_suffix(".tmp")
+        tmp.write_text(text, encoding="utf-8")
+        tmp.replace(path)
 
 
 def _migrate() -> None:

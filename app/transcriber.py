@@ -18,7 +18,7 @@ _lock = threading.Lock()
 def get_model() -> WhisperModel:
     global _model
     if _model is None:
-        # int8 sur CPU : bon compromis vitesse/qualité sur Mac (Apple Silicon ou Intel)
+        # int8 sur CPU : bon compromis vitesse/qualité, sans carte graphique
         _model = WhisperModel(MODEL_SIZE, device="cpu", compute_type="int8")
     return _model
 

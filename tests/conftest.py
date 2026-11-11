@@ -42,7 +42,7 @@ def pytest_collection_modifyitems(config, items):
 @pytest.fixture(autouse=True)
 def clean_state():
     """Chaque test part d'un dossier de données vide et d'aucune réunion en mémoire."""
-    for path in (CONFIG_FILE, ENV_FILE):
+    for path in (CONFIG_FILE, config.BACKUP_FILE, config.BROKEN_FILE, ENV_FILE):
         path.unlink(missing_ok=True)
     shutil.rmtree(SESSIONS_DIR, ignore_errors=True)
     discord_sessions._sessions.clear()

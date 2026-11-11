@@ -4,6 +4,7 @@ Whisper, le modèle de résumé et Notion sont simulés.
 """
 
 import json
+import threading
 import time
 
 import numpy as np
@@ -55,6 +56,31 @@ def test_transcription_regroupe_les_phrases_proches_d_une_meme_personne():
         "[00:00] Marc : Bonjour. On commence.\n[00:04] Julie : D'accord.\n[01:10] Marc : Autre sujet."
     )
     assert s.speakers() == ["Julie", "Marc"]
+
+
+def test_sauvegardes_simultanees_sans_fichier_corrompu():
+    """Transcription, page et fin de réunion enregistrent en même temps : le fichier reste lisible."""
+    s = discord_sessions.start("b1", "", "Studio", "Réu")
+    errors = []
+
+    def save_many(n):
+        try:
+            for i in range(20):
+                s.segments.append(seg(f"P{n}", n * 100 + i, n * 100 + i + 0.5, "Texte."))
+                s.save()
+        except Exception as e:  # remonté dans l'assertion ci-dessous
+            errors.append(e)
+
+    threads = [threading.Thread(target=save_many, args=(n,)) for n in range(6)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    s.save()
+    assert errors == []
+    folder = SESSIONS_DIR / s.id
+    assert len(json.loads((folder / "transcript.json").read_text(encoding="utf-8"))["segments"]) == 120
+    assert not list(folder.glob("*.tmp"))
 
 
 def test_horloge_au_dela_d_une_heure():

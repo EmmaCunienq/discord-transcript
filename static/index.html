@@ -7,46 +7,12 @@
 <meta name="theme-color" content="#375c4c">
 <title>Discord Transcript</title>
 <style>
-  :root {
-    color-scheme: light;
-    --bg: #b0bc99; --card: #fbf4df; --text: #2f4538; --muted: #66705a;
-    --subtle: #7f8266; --border: #d8d5b8; --field: #f1efda; --field-hover: #e5e6c9;
-    --accent: #375c4c; --accent-end: #6e8361; --accent-soft: #e4e8cc;
-    --accent-text: #fff8df; --gold: #ac793d; --gold-soft: #cdb987;
-    --rec: #b44e36; --rec-soft: #f3dbca; --ok: #61733f;
-    --bar: #9ea77d; --disabled: #e0e2c8; --disabled-text: #707b5c;
-    --halo: #e1e5b7; --rose: #e7cfa5; --mist: #bdcfb6;
-    --paper-line: #7f895314; --shadow: #1d332530; --scene-veil: #e9e5c90d;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --bg: #233a2f; --card: #263b31; --text: #f2e7c8; --muted: #b9bda0;
-    --subtle: #a3ad8b; --border: #4e624a; --field: #2f4437; --field-hover: #3c5340;
-    --accent: #c3d49d; --accent-end: #a6c493; --accent-soft: #3c523c;
-    --accent-text: #253b2f; --gold: #d0ae70; --gold-soft: #7b774d;
-    --rec: #db8b68; --rec-soft: #593c30; --ok: #b4cb8b;
-    --bar: #7b9466; --disabled: #40533d; --disabled-text: #b1bb94;
-    --halo: #405335; --rose: #503f2b; --mist: #314938;
-    --paper-line: #b0bc8315; --shadow: #0c211e70; --scene-veil: #162d2a65;
-    }
-  }
-  :root[data-theme="dark"] {
-    color-scheme: dark;
-    --bg: #233a2f; --card: #263b31; --text: #f2e7c8; --muted: #b9bda0;
-    --subtle: #a3ad8b; --border: #4e624a; --field: #2f4437; --field-hover: #3c5340;
-    --accent: #c3d49d; --accent-end: #a6c493; --accent-soft: #3c523c;
-    --accent-text: #253b2f; --gold: #d0ae70; --gold-soft: #7b774d;
-    --rec: #db8b68; --rec-soft: #593c30; --ok: #b4cb8b;
-    --bar: #7b9466; --disabled: #40533d; --disabled-text: #b1bb94;
-    --halo: #405335; --rose: #503f2b; --mist: #314938;
-    --paper-line: #b0bc8315; --shadow: #0c211e70; --scene-veil: #162d2a65;
-  }
   * { box-sizing: border-box; }
   body {
     margin: 0; min-height: 100vh; min-height: 100svh; padding: 24px 16px;
     display: flex; flex-direction: column; align-items: center; color: var(--text);
-    background: var(--bg) url("/static/assets/woodland-background.png") center / cover no-repeat fixed;
+    background: var(--bg); background-image: var(--page-background);
+    background-position: center; background-size: cover; background-attachment: fixed;
     font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     -webkit-font-smoothing: antialiased;
   }
@@ -73,24 +39,24 @@
   .widget::before { content: ""; position: absolute; inset: 6px; border: 1px solid var(--border); border-radius: 18px; pointer-events: none; z-index: -1; }
   .app-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
-  .logo { display: grid; place-items: center; width: 39px; height: 43px; border-radius: 15px 15px 12px 12px; background: linear-gradient(145deg, var(--accent-end), var(--accent)); color: var(--accent-text); border: 1px solid var(--gold-soft); box-shadow: 0 4px 12px var(--shadow); }
-  .logo .icon { width: 22px; height: 22px; }
+  .logo { flex-shrink: 0; width: 40px; height: 40px; border-radius: 25%; background: var(--app-icon) center / contain no-repeat; box-shadow: 0 4px 12px var(--shadow); }
   .brand h1 { font: 600 22px/1.2 Georgia, "Times New Roman", serif; letter-spacing: -.6px; margin: 0; }
   .brand p { font-size: 11px; color: var(--muted); margin: 4px 0 0; }
   .header-side { display: flex; align-items: center; gap: 8px; }
-  .gear { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid var(--border); border-radius: 50%; background: var(--field); color: var(--muted); }
-  .gear:hover { color: var(--accent); background: var(--field-hover); }
-  .gear .icon { width: 16px; height: 16px; }
   .status { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; border: 1px solid var(--border); border-radius: 20px; background: var(--field); color: var(--muted); font-size: 11px; white-space: nowrap; }
   .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--ok); }
   .status.rec { color: var(--rec); background: var(--rec-soft); }
   .status.busy { color: var(--accent); background: var(--accent-soft); }
   .status.rec .dot, .status.busy .dot { background: currentColor; animation: blink 1.4s ease-in-out infinite; }
   @keyframes blink { 50% { opacity: .3; } }
-  .profile-tabs { display: flex; gap: 4px; margin: 12px -4px 0; padding: 0 4px 2px; overflow-x: auto; scrollbar-width: thin; }
+  .profile-tabs { display: flex; gap: 4px; margin: 12px -4px 0; padding: 0 4px 2px; overflow-x: auto; }
   .profile-tab { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; max-width: 170px; padding: 7px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--field); color: var(--muted); font-size: 12px; }
   .profile-tab:hover:not(.active) { color: var(--accent); background: var(--field-hover); }
   .profile-tab.active { background: var(--card); color: var(--accent); border-color: var(--gold-soft); box-shadow: 0 1px 4px var(--shadow); font-weight: 550; }
+  .ai-banner { margin: 10px 0 0; padding: 8px 12px; border: 1px solid var(--border); border-radius: 11px; background: var(--field); font-size: 11px; color: var(--muted); }
+  .ai-banner.error { color: var(--rec); border-color: var(--rec); }
+  .ai-bar { height: 4px; margin-top: 6px; border-radius: 2px; background: var(--border); overflow: hidden; }
+  .ai-bar span { display: block; height: 100%; background: var(--accent); transition: width .4s; }
   .profile-tab.add { font-size: 14px; line-height: 1; }
   .tab-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .live-dot { display: none; width: 6px; height: 6px; border-radius: 50%; background: var(--rec); flex-shrink: 0; animation: blink 1.4s ease-in-out infinite; }
@@ -214,7 +180,7 @@
     .brand h1 { font-size: 19px; }
     .brand p { font-size: 10px; }
     .brand { gap: 9px; }
-    .logo { width: 34px; height: 39px; }
+    .logo { width: 34px; height: 34px; }
     .status { font-size: 10px; padding: 5px 7px; }
     .actions { gap: 9px; flex-wrap: wrap; }
     .actions .primary { margin-left: auto; padding-inline: 12px; }
@@ -228,6 +194,11 @@
   }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
+<link rel="stylesheet" href="/static/themes.css">
+<link rel="icon" type="image/svg+xml" href="/static/assets/app-icon.svg">
+<script src="/static/app-icon.js"></script>
+<script src="/static/themes.js"></script>
+<script src="/static/app-menu.js" defer></script>
 </head>
 <body>
 <svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -238,7 +209,6 @@
   <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v13M7 11l5 5 5-5M4 17v4h16v-4"/></symbol>
   <symbol id="i-headset" viewBox="0 0 24 24"><path d="M4 15v-3a8 8 0 0 1 16 0v3M4 15a2 2 0 0 0 2 2h1v-5H6a2 2 0 0 0-2 2zM20 15a2 2 0 0 1-2 2h-1v-5h1a2 2 0 0 1 2 2zM18 17v1a3 3 0 0 1-3 3h-2"/></symbol>
   <symbol id="i-notion" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 16V8l6 8V8"/></symbol>
-  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
   <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0v4M12 15v2"/></symbol>
 
   <symbol id="i-feather" viewBox="0 0 32 32"><path d="M7 25C3 12 14 3 27 4c1 13-8 24-20 21ZM4 29 24 7M10 22v-7M15 17h7M19 13V8"/></symbol>
@@ -251,19 +221,35 @@
 <div class="widget" id="widget" data-state="idle">
   <header class="app-header">
     <div class="brand">
-      <div class="logo"><svg class="icon" aria-hidden="true"><use href="#i-feather"/></svg></div>
+      <div class="logo" aria-hidden="true"></div>
       <div><h1>Discord Transcript</h1><p>Transcription &amp; compte rendu de réunion</p></div>
     </div>
     <div class="header-side">
       <div class="status" id="status" role="status"><span class="dot"></span><span id="statusText">Prêt</span></div>
-      <a class="gear" id="settingsLink" href="/static/settings.html" title="Réglages" aria-label="Réglages" hidden><svg class="icon" aria-hidden="true"><use href="#i-gear"/></svg></a>
+      <div data-app-menu></div>
     </div>
   </header>
   <svg class="ornament" viewBox="0 0 430 12" fill="none" aria-hidden="true">
     <path d="M0 6h178m74 0h178M194 6h9m24 0h9M215 1l5 5-5 5-5-5Z" stroke="currentColor" stroke-width=".7"/>
     <circle cx="186" cy="6" r="1.1" fill="currentColor"/><circle cx="244" cy="6" r="1.1" fill="currentColor"/>
   </svg>
+  <svg class="theme-ornament theme-ornament-city" viewBox="0 0 430 26" aria-hidden="true">
+    <path d="M0 22h167v-9h8V7h8v15h7V4h9v18h7V12h8V1h9v21h8V9h9v13h8v-7h12v7h170M194 8v3m0 4v3m24-12v3m0 4v3m17-3v4"/>
+  </svg>
+  <svg class="theme-ornament theme-ornament-mountain" viewBox="0 0 430 26" aria-hidden="true">
+    <path d="M0 23h169l17-15 13 15 22-22 22 22 12-12 14 12h161M210 12l6 3 5-3 7 3"/>
+  </svg>
+  <svg class="theme-ornament theme-ornament-ocean" viewBox="0 0 430 26" aria-hidden="true">
+    <path d="M0 15h158c12 0 12-8 24-8s12 8 24 8 12-8 24-8 12 8 24 8h176M178 22c12-8 18-8 30 0m14 0c12-8 18-8 30 0"/>
+  </svg>
+  <svg class="theme-ornament theme-ornament-japan" viewBox="0 0 430 26" aria-hidden="true">
+    <path d="M0 20h177m76 0h177M192 23c12-12 27-14 47-10M211 16c-12-4-10-13-3-10 1-9 10-5 7 1 9-3 10 6 3 7 5 7-4 10-7 2ZM231 14l5 7m-39-2-3-7"/>
+  </svg>
   <nav class="profile-tabs" id="profileTabs" role="tablist" aria-label="Profils d’enregistrement"></nav>
+  <div class="ai-banner" id="aiBanner" role="status" hidden>
+    <span id="aiText"></span>
+    <div class="ai-bar" id="aiBar" hidden><span id="aiProgress"></span></div>
+  </div>
   <main>
     <section class="no-profile" id="noProfile" hidden>
       <h2>Aucun profil</h2>
@@ -415,6 +401,7 @@ let publishing = null;    // id de la réunion en cours d'envoi vers Notion
 let liveSince = 0;        // performance.now() de la dernière mesure de durée (réunion en cours)
 const seenSummary = new Map(); // id -> résumé déjà affiché (pastille « nouveau » sur l'onglet Résumé)
 let notionConfigured = false;
+let localAi = null;       // préparation d'Ollama (résumé local) : téléchargement, démarrage, modèle
 
 const isLive = (s) => !!s && (s.active || s.pending > 0);
 const isFinishing = (s) => !!s && (s.summary_status === "running" || s.notion_status === "running");
@@ -530,7 +517,7 @@ async function openEditor() {
 async function loadBotChoices(p) {
   try { botList = await getJson("/api/bots"); } catch { botList = []; }
   const options = botList.map((b) => new Option(b.name, b.id));
-  if (!botList.length) options.push(new Option("Aucun bot : ajoute-en un dans ⚙ Réglages", ""));
+  if (!botList.length) options.push(new Option("Aucun bot : ajoute-en un dans le menu ••• → Réglages", ""));
   else if (!botList.some((b) => b.id === p.bot_id)) options.unshift(new Option("Choisis un bot…", ""));
   els.pBot.replaceChildren(...options);
   els.pBot.value = botList.some((b) => b.id === p.bot_id) ? p.bot_id : "";
@@ -563,7 +550,7 @@ async function loadChannelChoices(p) {
 async function loadNotionChoices(p) {
   const hint = (text) => (els.pNotionHint.textContent = text);
   if (!notionConfigured) {
-    els.pNotion.replaceChildren(new Option("Notion non configuré (jeton dans ⚙ Réglages)", ""));
+    els.pNotion.replaceChildren(new Option("Notion non configuré (jeton dans ••• → Réglages)", ""));
     hint("");
     return;
   }
@@ -703,8 +690,25 @@ function profileSummary(p) {
   return parts.join(" · ");
 }
 
+// Bandeau pendant que l'app prépare Ollama (premier lancement : téléchargement de plusieurs Go)
+function renderLocalAi() {
+  const a = localAi;
+  const show = !!a?.enabled && a.phase !== "ready" && a.phase !== "off";
+  $("aiBanner").hidden = !show;
+  if (!show) return;
+  const failed = a.phase === "error";
+  $("aiBanner").classList.toggle("error", failed);
+  const pct = a.progress == null ? "" : ` ${Math.floor(a.progress * 100)} %`;
+  $("aiText").textContent = failed ? `Résumé local indisponible : ${a.error}`
+    : `Préparation du résumé local — ${a.detail}${pct}` + (a.phase === "downloading" || a.phase === "pulling"
+      ? " (une seule fois, l’enregistrement reste possible)" : "");
+  $("aiBar").hidden = failed || a.progress == null;
+  $("aiProgress").style.width = `${Math.round((a.progress ?? 0) * 100)}%`;
+}
+
 function render() {
   renderProfileTabs();
+  renderLocalAi();
   const p = currentProfile();
   els.noProfile.hidden = !!p;
   els.profileView.hidden = !p;
@@ -772,9 +776,10 @@ function render() {
   else setStatus("Prêt");
 
   const speakers = d?.speakers.length ?? 0;
+  const present = d?.participants.length ?? 0;
   els.caption.textContent =
     botBusy ? (recording ? "Arrêt de l’enregistrement…" : "Connexion du bot au salon…")
-    : recording ? `🔊 ${d.channel} · ${speakers} intervenant${speakers > 1 ? "s" : ""}`
+    : recording ? `🔊 ${d.channel} · ${present} participant${present > 1 ? "s" : ""} · ${speakers} intervenant${speakers > 1 ? "s" : ""}`
     : live ? "Finalisation de la transcription…"
     : busySummary ? "Rédaction du compte rendu…"
     : busyNotion ? "Ajout du compte rendu dans Notion…"
@@ -947,9 +952,16 @@ async function refreshSessions() {
   }
 }
 
+async function refreshLocalAi() {
+  try { localAi = await getJson("/api/local-ai"); } catch { return; }
+  renderLocalAi();
+}
+const localAiPreparing = () => !!localAi?.enabled && !["ready", "error", "off"].includes(localAi.phase);
+
 async function poll() {
   await refreshSessions();
-  const busy = sessions.some((s) => isLive(s) || isFinishing(s));
+  if (!localAi || localAiPreparing()) await refreshLocalAi();
+  const busy = sessions.some((s) => isLive(s) || isFinishing(s)) || localAiPreparing();
   setTimeout(poll, busy ? 1500 : 4000);
 }
 // Durée qui défile pendant une réunion en cours
@@ -986,10 +998,6 @@ async function stopRecording() {
 
 els.record.onclick = startRecording;
 els.stop.onclick = stopRecording;
-
-// Réglages : seulement dans l'application de bureau (ils passent par son API)
-window.addEventListener("pywebviewready", () => { $("settingsLink").hidden = false; });
-if (window.pywebview?.api) $("settingsLink").hidden = false;
 
 (async () => {
   try { notionConfigured = (await getJson("/api/notion/status")).configured; } catch {}

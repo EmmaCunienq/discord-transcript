@@ -13,7 +13,9 @@ from app import bots
 
 class FakeBot(BaseHTTPRequestHandler):
     def do_GET(self):
-        if self.path == "/guilds":
+        if self.headers.get("X-Control-Key") != "cle":
+            self._send(403, {"detail": "Accès refusé."})
+        elif self.path == "/guilds":
             self._send(200, [{"id": "g1", "name": "Studio"}])
         else:
             self._send(409, {"detail": "Un enregistrement est déjà en cours sur ce serveur."})
@@ -41,7 +43,7 @@ def fake_bot(write_config):
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
     proc = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
     write_config(bots=[{"id": "b1", "name": "Principal", "token": "t"}])
-    bots._running["b1"] = bots._Process(httpd.server_address[1], proc)
+    bots._running["b1"] = bots._Process(httpd.server_address[1], proc, "cle")
     yield proc
     bots._running.clear()
     proc.kill()
@@ -105,11 +107,25 @@ def test_un_processus_par_bot_avec_son_token_et_son_port(monkeypatch, write_conf
 
     monkeypatch.setattr(bots.subprocess, "Popen", FakePopen)
     monkeypatch.setattr(bots, "node_executable", lambda: "node")
+    monkeypatch.setenv("NOTION_TOKEN", "ntn-secret")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-secret")
     bots.start_all("http://127.0.0.1:8765")
     try:
         assert [(e["BOT_ID"], e["DISCORD_TOKEN"], e["BOT_NAME"]) for e in launched] == [("b1", "t1", "A"), ("b2", "t2", "B")]
         assert {e["TRANSCRIPT_SERVER"] for e in launched} == {"http://127.0.0.1:8765"}
         assert launched[0]["BOT_CONTROL_PORT"] != launched[1]["BOT_CONTROL_PORT"]
+        # Un secret par bot pour son API de contrôle, et aucune clé dont le bot n'a pas besoin
+        keys = [e["BOT_CONTROL_KEY"] for e in launched]
+        assert len(set(keys)) == 2 and all(len(k) >= 24 for k in keys)
+        assert [bots._running[b].key for b in ("b1", "b2")] == keys
+        assert not any("NOTION_TOKEN" in e or "ANTHROPIC_API_KEY" in e for e in launched)
     finally:
         bots.stop_all()
     assert bots._running == {}
+
+
+def test_appel_sans_le_secret_du_bot_refuse(fake_bot):
+    bots._running["b1"].key = "mauvaise"
+    with pytest.raises(bots.BotError) as err:
+        bots.call("b1", "/guilds")
+    assert err.value.status == 403

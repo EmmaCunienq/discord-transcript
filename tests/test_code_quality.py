@@ -13,7 +13,7 @@ PAGES = [ROOT / "static" / "index.html", ROOT / "static" / "settings.html"]
 
 
 def test_pyflakes_sans_import_ni_variable_inutilises():
-    res = subprocess.run([sys.executable, "-m", "pyflakes", "app", "desktop/main.py", "tests"],
+    res = subprocess.run([sys.executable, "-m", "pyflakes", "app", "desktop", "tests"],
                          cwd=ROOT, capture_output=True, text=True)
     assert res.returncode == 0, res.stdout + res.stderr
 
@@ -47,4 +47,11 @@ def test_script_de_la_page_valide(page, tmp_path):
 @pytest.mark.skipif(not shutil.which("node"), reason="Node.js introuvable")
 def test_script_du_bot_valide():
     res = subprocess.run(["node", "--check", str(ROOT / "bot" / "index.js")], capture_output=True, text=True)
+    assert res.returncode == 0, res.stderr
+
+
+@pytest.mark.skipif(not shutil.which("node"), reason="Node.js introuvable")
+@pytest.mark.parametrize("filename", ["themes.js", "app-menu.js", "app-icon.js"])
+def test_scripts_partages_valides(filename):
+    res = subprocess.run(["node", "--check", str(ROOT / "static" / filename)], capture_output=True, text=True)
     assert res.returncode == 0, res.stderr

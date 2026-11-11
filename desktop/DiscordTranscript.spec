@@ -9,6 +9,7 @@ ROOT = Path(SPECPATH).parent
 
 datas = [
     (str(ROOT / "static"), "static"),
+    (str(ROOT / "desktop" / "icon.ico"), "desktop"),
     (str(ROOT / "bot" / "index.js"), "bot"),
     (str(ROOT / "bot" / "package.json"), "bot"),
     (str(ROOT / "bot" / "node_modules"), "bot/node_modules"),

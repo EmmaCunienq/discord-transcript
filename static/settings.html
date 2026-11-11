@@ -2,30 +2,19 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#b0bc99">
 <meta name="color-scheme" content="light dark">
 <title>Réglages — Discord Transcript</title>
 <style>
-  :root {
-    color-scheme: light;
-    --bg: #b0bc99; --card: #fbf4df; --text: #2f4538; --muted: #66705a;
-    --border: #d8d5b8; --field: #f1efda; --accent: #375c4c; --accent-text: #fff8df;
-    --rec: #b44e36; --ok: #61733f; --shadow: #1d332530;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      color-scheme: dark;
-      --bg: #233a2f; --card: #263b31; --text: #f2e7c8; --muted: #b9bda0;
-      --border: #4e624a; --field: #2f4437; --accent: #c3d49d; --accent-text: #253b2f;
-      --rec: #db8b68; --ok: #b4cb8b; --shadow: #0c211e70;
-    }
-  }
   * { box-sizing: border-box; }
   body {
     margin: 0; min-height: 100vh; padding: 24px 16px; display: flex; justify-content: center;
-    color: var(--text); background: var(--bg) url("/static/assets/woodland-background.png") center / cover no-repeat fixed;
+    color: var(--text); background: var(--bg); background-image: var(--page-background);
+    background-position: center; background-size: cover; background-attachment: fixed;
     font: 14px/1.5 "Segoe UI", -apple-system, sans-serif;
   }
-  main {
+  .settings-panel {
     width: 100%; max-width: 640px; align-self: flex-start; background: var(--card);
     border: 1px solid var(--border); border-radius: 18px; padding: 24px 28px;
     box-shadow: 0 12px 40px var(--shadow);
@@ -59,13 +48,32 @@
   #status.ok { color: var(--ok); }
   a { color: inherit; }
 </style>
+<link rel="stylesheet" href="/static/themes.css">
+<link rel="icon" type="image/svg+xml" href="/static/assets/app-icon.svg">
+<script src="/static/app-icon.js"></script>
+<script src="/static/themes.js"></script>
+<script src="/static/app-menu.js" defer></script>
 </head>
 <body>
-<main>
+<main class="settings-panel">
+  <div class="settings-top">
+    <a class="back-link" href="/" data-home-link>← Retour à l'application</a>
+    <div data-app-menu></div>
+  </div>
   <h1>Réglages</h1>
-  <p class="intro">Enregistrés sur cet ordinateur uniquement. Enregistrer redémarre l'application.</p>
+  <p class="intro">Une interface à votre goût.</p>
 
-  <form id="form">
+  <fieldset class="appearance">
+    <legend>Apparence</legend>
+    <p class="hint" id="themeHint">Une interface épurée ou une escapade illustrée ? Choisissez votre décor, appliqué immédiatement, sans redémarrage.</p>
+    <div class="theme-grid" data-theme-picker aria-describedby="themeHint"></div>
+    <p class="hint theme-notice" data-theme-notice role="status" aria-live="polite">Le choix est mémorisé sur cet appareil, indépendamment des profils.</p>
+  </fieldset>
+
+  <p class="hint" id="desktopHint">Les réglages de connexion sont disponibles dans l'application de bureau.</p>
+  <span id="status" role="status"></span>
+  <form id="form" hidden>
+    <p class="hint">Enregistrer ces réglages redémarre l'application.</p>
     <h2>Bots Discord</h2>
     <p class="hint">Chaque profil (onglet) choisit son bot. Plusieurs bots peuvent enregistrer en même temps,
       y compris sur un même serveur ; un bot ne peut être que dans un salon vocal à la fois par serveur.</p>
@@ -80,7 +88,8 @@
     <h2>Résumé</h2>
     <label for="OLLAMA_MODEL">Modèle local Ollama (gratuit)</label>
     <input id="OLLAMA_MODEL" placeholder="ex. mistral-nemo">
-    <p class="hint">Si renseigné, le résumé est rédigé sur cet ordinateur par <a href="https://ollama.com" target="_blank">Ollama</a>. Sinon, Claude est utilisé.</p>
+    <p class="hint">Si renseigné, le résumé est rédigé sur cet ordinateur par <a href="https://ollama.com" target="_blank">Ollama</a>,
+      que l'application télécharge (une seule fois, avec le modèle), lance et arrête toute seule. Vide : Claude est utilisé.</p>
     <label for="ANTHROPIC_API_KEY">Clé API Anthropic (Claude)</label>
     <div class="row"><input id="ANTHROPIC_API_KEY" type="password" placeholder="sk-ant-…" autocomplete="off"><button type="button" data-toggle="ANTHROPIC_API_KEY">Afficher</button></div>
 
@@ -97,9 +106,8 @@
     <input id="WHISPER_LANGUAGE" placeholder="fr (par défaut) — « auto » pour détecter">
 
     <div class="actions">
-      <span id="status"></span>
       <button type="button" id="dataBtn">Dossier des réunions</button>
-      <button type="button" id="backBtn">Annuler</button>
+      <button type="button" id="backBtn">Retour</button>
       <button type="submit" class="primary" id="saveBtn">Enregistrer</button>
     </div>
   </form>
@@ -143,8 +151,15 @@ function addBotRow(bot = { id: "", name: "", token: "" }) {
 
 (async () => {
   const a = await api();
-  if (!a) { status("Réglages disponibles uniquement dans l'application de bureau.", "error"); $("saveBtn").disabled = true; return; }
+  if (!a) {
+    status("Les réglages de connexion sont disponibles uniquement dans l'application de bureau.");
+    $("desktopHint").hidden = true;
+    $("saveBtn").disabled = true;
+    return;
+  }
   const { values, bots } = await a.get_settings();
+  $("form").hidden = false;
+  $("desktopHint").hidden = true;
   for (const k of FIELDS) $(k).value = values[k] ?? "";
   bots.forEach(addBotRow);
   if (!bots.length) addBotRow();
@@ -152,7 +167,7 @@ function addBotRow(bot = { id: "", name: "", token: "" }) {
 
 document.querySelectorAll("[data-toggle]").forEach(btn => btn.onclick = () => toggleSecret(btn, $(btn.dataset.toggle)));
 $("addBot").onclick = () => addBotRow();
-$("backBtn").onclick = () => { location.href = "/"; };
+$("backBtn").onclick = () => { location.href = "/" + location.search; };
 $("dataBtn").onclick = async () => { (await api())?.open_data_folder(); };
 
 $("form").onsubmit = async e => {
@@ -172,7 +187,7 @@ $("form").onsubmit = async e => {
       await a.restart();
     } else {
       status("Aucun changement", "ok");
-      setTimeout(() => { location.href = "/"; }, 600);
+      setTimeout(() => { location.href = "/" + location.search; }, 600);
     }
   } catch (err) {
     status(`Échec : ${err.message || err}`, "error");

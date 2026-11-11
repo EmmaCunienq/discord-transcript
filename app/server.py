@@ -4,27 +4,19 @@ import hmac
 import mimetypes
 import os
 from contextlib import asynccontextmanager
-from pathlib import Path
+from urllib.parse import urlsplit
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, PlainTextResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from . import envfile
 from .paths import ENV_FILE, STATIC_DIR
 
-
-def load_env_file(path: Path) -> None:
-    """Charge les variables d'un fichier .env (sans écraser celles déjà définies)."""
-    if not path.exists():
-        return
-    for line in path.read_text(encoding="utf-8-sig").splitlines():
-        key, sep, value = line.strip().partition("=")
-        if sep and key and not key.startswith("#"):
-            os.environ.setdefault(key.strip(), value.strip().strip("\"'"))
-
-
-load_env_file(ENV_FILE)
+# Variables du .env, sans écraser celles déjà définies dans l'environnement
+for _key, _value in envfile.read(ENV_FILE).items():
+    os.environ.setdefault(_key, _value)
 
 # Sous Windows, mimetypes lit les types de fichiers dans le registre au premier envoi d'un
 # fichier, ce qui peut prendre des dizaines de secondes. La table intégrée suffit.
@@ -32,17 +24,20 @@ if os.name == "nt":
     mimetypes._mimetypes_read_windows = None  # type: ignore[attr-defined]
     mimetypes._winreg = None  # type: ignore[attr-defined]
     mimetypes.init()
+mimetypes.add_type("image/webp", ".webp")  # fonds des thèmes ; absent de la table intégrée de Python 3.12
 
-from . import bots, config, discord_sessions, notion, transcriber  # noqa: E402  (après le .env)
+from . import bots, config, discord_sessions, local_ai, notion, summarizer, transcriber  # noqa: E402  (après le .env)
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    # Charge (et télécharge au premier lancement) le modèle Whisper avant la 1re requête,
-    # puis lance un processus par bot Discord configuré.
+    # Ollama se prépare en arrière-plan (téléchargement au besoin) pendant que le modèle Whisper
+    # se charge ; puis un processus par bot Discord configuré.
+    local_ai.start_background(summarizer.OLLAMA_MODEL)
     transcriber.get_model()
     bots.start_all(os.getenv("TRANSCRIPT_SERVER", "http://127.0.0.1:8010"))
     yield
     bots.stop_all()
+    local_ai.stop()
 
 
 app = FastAPI(title="Discord Transcript", lifespan=lifespan)
@@ -52,9 +47,29 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 # avec ?key=… et chaque appel d'API la renvoie dans l'en-tête X-Access-Key.
 ACCESS_KEY = os.getenv("TRANSCRIPT_ACCESS_KEY", "")
 
+LOCAL_HOSTS = {"127.0.0.1", "localhost", "::1"}
+SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
+
+
+def _foreign_request(request: Request) -> str:
+    """Sans clé d'accès (app locale), refuse ce qui ne vient pas de la page elle-même ou des bots :
+    - un nom d'hôte autre que local : un site qui ferait pointer son domaine sur 127.0.0.1
+      (« DNS rebinding ») pourrait sinon lire les transcriptions ;
+    - un envoi depuis un autre site (en-tête Origin) : n'importe quelle page ouverte dans le
+      navigateur pourrait sinon lancer un enregistrement ou publier dans Notion."""
+    host = request.headers.get("host", "")
+    if urlsplit(f"//{host}").hostname not in LOCAL_HOSTS:
+        return "Accès refusé : adresse inattendue."
+    origin = request.headers.get("origin")
+    if request.method not in SAFE_METHODS and origin is not None and urlsplit(origin).netloc != host:
+        return "Accès refusé : requête envoyée par un autre site."
+    return ""
+
 
 @app.middleware("http")
-async def check_access_key(request: Request, call_next):
+async def check_access(request: Request, call_next):
+    if not ACCESS_KEY and (refused := _foreign_request(request)):
+        return PlainTextResponse(refused, status_code=403)
     if ACCESS_KEY and not request.url.path.startswith("/static/"):
         given = request.headers.get("x-access-key") or request.query_params.get("key", "")
         if not hmac.compare_digest(given.encode(), ACCESS_KEY.encode()):
@@ -88,6 +103,10 @@ class DiscordSessionRequest(BaseModel):
     profile_id: str = ""  # vide : enregistrement lancé par /enregistrer dans Discord
 
 
+# Le bot découpe les prises de parole à 30 s (PCM 16 bits mono 48 kHz) : marge ×2
+MAX_UTTERANCE_BYTES = 60 * 48_000 * 2
+
+
 def _session_or_404(session_id: str) -> discord_sessions.Session:
     session = discord_sessions.get(session_id)
     if session is None:
@@ -105,14 +124,28 @@ def discord_start(req: DiscordSessionRequest) -> dict:
 def discord_utterance(
     session_id: str,
     audio: UploadFile = File(...),
-    sample_rate: int = Form(...),
-    user_id: str = Form(...),
-    speaker: str = Form(...),
-    start_ms: int = Form(...),
+    sample_rate: int = Form(..., gt=0, le=192_000),
+    user_id: str = Form(..., max_length=64),
+    speaker: str = Form(..., max_length=100),
+    start_ms: int = Form(..., ge=0),
 ) -> dict:
     session = _session_or_404(session_id)
-    discord_sessions.add_utterance(session, audio.file.read(), sample_rate, user_id, speaker, start_ms)
+    pcm = audio.file.read(MAX_UTTERANCE_BYTES + 1)
+    if len(pcm) > MAX_UTTERANCE_BYTES or len(pcm) % 2:
+        raise HTTPException(status_code=400, detail="Audio invalide (PCM 16 bits, 60 s au plus).")
+    discord_sessions.add_utterance(session, pcm, sample_rate, user_id, speaker, start_ms)
     return {"queued": True}
+
+
+class ParticipantsRequest(BaseModel):
+    names: list[str]
+
+
+@app.post("/api/discord/sessions/{session_id}/participants")
+def discord_participants(session_id: str, req: ParticipantsRequest) -> dict:
+    session = _session_or_404(session_id)
+    discord_sessions.set_participants(session, req.names)
+    return {"participants": session.participants}
 
 
 @app.post("/api/discord/sessions/{session_id}/stop")
@@ -234,6 +267,12 @@ def bots_list() -> list[dict]:
 @app.get("/api/bots/{bot_id}/channels")
 def bot_channels(bot_id: str) -> list:
     return _bot(bot_id, "/channels")
+
+
+@app.get("/api/local-ai")
+def local_ai_status() -> dict:
+    """Préparation d'Ollama (téléchargement, démarrage, modèle), affichée dans la page."""
+    return {**local_ai.status(), "enabled": bool(summarizer.OLLAMA_MODEL)}
 
 
 @app.get("/api/notion/status")

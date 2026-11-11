@@ -40,25 +40,34 @@ Environnement Python : `.venv-win` (Python 3.12). `.venv` est un ancien environn
 | `app/discord_sessions.py` | Réunions : file de transcription, fin de réunion (résumé + Notion), corrections, sauvegarde et rechargement depuis `output/sessions/<id>/` |
 | `app/transcriber.py` | faster-whisper (CPU, int8), ré-échantillonnage |
 | `app/summarizer.py` | Prompt du compte rendu, Ollama ou Claude en flux |
+| `app/local_ai.py` | Ollama géré par l'app : utilise un Ollama ouvert, sinon lance l'installé, sinon télécharge la version Windows dans `DATA_DIR/ollama` (vérifiée par SHA-256) ; télécharge le modèle ; arrête seulement l'Ollama qu'il a lancé |
 | `app/notion.py` | Recherche de pages, conversion Markdown → blocs, publication |
+| `app/envfile.py` | Lecture du `.env` (serveur et lanceur) ; `child_env` : environnement des bots et d'Ollama, sans les clés de l'app |
 | `app/paths.py` | `RESOURCE_DIR` (fichiers livrés, `_MEIPASS` dans l'exe) et `DATA_DIR` (`TRANSCRIPT_DATA_DIR`, `%LOCALAPPDATA%\DiscordTranscript` dans l'app) |
 | `bot/index.js` | Bot discord.js : rejoint le salon, envoie une piste par participant, API de contrôle locale (`/guilds`, `/channels`, `/record`, `/stop`) |
 | `static/index.html` | Page unique sans dépendance : onglets de profils, enregistrement, transcription, résumé, historique du profil |
 | `static/settings.html` | Réglages (bots, jeton Notion, Ollama/Claude, Whisper) — uniquement dans l'app de bureau |
 | `desktop/DiscordTranscript.spec` | PyInstaller (onedir) : embarque `static/`, `bot/` avec `node_modules` et `node.exe` |
 
-Données utilisateur (`DATA_DIR`) : `.env` (clés), `config.json` (bots, profils), `output/sessions/`, `logs/app.log`,
+Données utilisateur (`DATA_DIR`) : `.env` (clés), `config.json` (bots, profils ; copie de secours `config.backup.json`), `output/sessions/`, `logs/app.log`,
 `webview/` (stockage de la fenêtre). Les variables d'environnement sont lues **à l'import** des modules.
 
 ## Pièges connus
 
 - **Windows / mimetypes** : `mimetypes` lit le registre au premier fichier servi (des dizaines de secondes) ;
-  désactivé dans `server.py`, ne pas retirer.
+  désactivé dans `server.py`, ne pas retirer. La table intégrée ne connaît pas `.webp` : ajouté à la main.
+- **Hôte local** : sans `TRANSCRIPT_ACCESS_KEY`, le serveur refuse les noms d'hôte non locaux et les POST
+  d'une autre origine. Dans les tests, `TestClient(..., base_url="http://127.0.0.1:8765")`.
+- **Bots** : l'API de contrôle exige l'en-tête `X-Control-Key` (secret tiré par `bots.start_all`).
+- **Fonds des thèmes** : WebP dans `static/assets/` (+ vignettes `*-preview.webp`) ; PNG d'origine dans
+  `output/design/originals/`, non embarqués.
 - **Cache WebView2** : la page est servie avec `Cache-Control: no-cache`, sinon la fenêtre garde d'anciennes versions.
 - **pywebview js_api** : tout attribut public de `Api` est parcouru récursivement ; garder la fenêtre dans `_window`.
 - **Page** : les éléments à `id` sont des globales JS ; une fonction de même nom les masque (ex. `profileSummary`).
   Dans les tests UI, préférer `document.getElementById(...)`.
 - **Port fermé sous Windows** : une connexion refusée met ~2 s ; `bots.call` vérifie d'abord si le processus vit.
+- **Ollama** : ne jamais arrêter l'application Ollama de l'utilisateur (seulement `local_ai._proc`). Premier
+  téléchargement : 1,6 Go + ~7 Go de modèle, d'où la vérification d'espace disque (12 Go).
 - **Discord** : un bot ne peut être que dans un salon vocal à la fois par serveur ; pour deux salons en même temps,
   deux bots.
 - **PowerShell 5.1** lit les `.ps1` sans BOM en ANSI : garder `build.ps1` en UTF-8 avec BOM.

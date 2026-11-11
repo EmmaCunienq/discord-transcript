@@ -7,6 +7,23 @@ quand plusieurs personnes parlent en même temps.
 - **Transcription** : [faster-whisper](https://github.com/SYSTRAN/faster-whisper), exécuté en local — l'audio ne quitte jamais la machine.
 - **Résumé** : Claude (API Anthropic, seul le texte de la transcription est envoyé) ou un modèle local via Ollama (`OLLAMA_MODEL`).
 - **Interface** : une page web servie en local (aucune dépendance front, fonctionne hors ligne pour la partie transcription).
+- **Apparence** : dans **••• → Réglages → Apparence**, choisir **Basique** (épuré, sans décor, par défaut),
+  **Forêt** (le design d'origine), **Ville** (toits au crépuscule), **Montagne** (sommets et lac alpin),
+  **Mer** (côte méditerranéenne) ou **Jardin japonais** (cerisiers et lanternes).
+  Les ambiances artistiques associent une illustration locale, une palette, une typographie et des ornements.
+  Basique et Forêt suivent le mode clair/sombre du système. Les aperçus montrent les vrais décors ; le choix
+  s'applique immédiatement aux deux pages et se mémorise sur cet appareil, sans redémarrage.
+  Disponible aussi dans le navigateur et commun à tous les profils. Les anciens choix Papier, Minuit et
+  Aurore deviennent respectivement Basique, Ville et Mer.
+  Le bouton **•••**, intégré en haut de chaque page, ouvre le menu assorti au thème : Accueil, Réglages,
+  et dans l'application de bureau, Dossier des réunions, Ouvrir le journal et Quitter l'application.
+  Il remplace la barre de menu Windows. Sous Windows 11, le titre et la bordure restent assortis à la palette active.
+  Le logo est un micro dans un carré arrondi : son dessin est identique pour toutes les ambiances,
+  ses couleurs suivent le thème, dans la page, l'onglet du navigateur et l'icône de la fenêtre Windows.
+  L'application possède aussi sa propre identité dans la barre des tâches, même en développement avec Python,
+  pour afficher le micro et regrouper ses fenêtres sous Discord Transcript.
+  Les barres de défilement de la page, des transcriptions et de l'historique suivent aussi le thème,
+  avec un curseur arrondi et une couleur de survol assortie.
 
 ## Installation
 
@@ -38,12 +55,18 @@ powershell -ExecutionPolicy Bypass -File desktop\build.ps1
 L'application est créée dans `dist\DiscordTranscript\` : lancer `DiscordTranscript.exe` (le dossier entier peut être
 copié ou zippé vers un autre PC Windows 10/11). Pour la tester sans la construire : `.venv-win\Scripts\python.exe desktop\main.py`.
 
-- **Réglages** (bouton ⚙ en haut de la page, ou menu *Discord Transcript → Réglages…*) : les **bots Discord**
+- **Réglages** (menu **••• → Réglages**, en haut de la page) : les **bots Discord**
   (nom + token, autant que tu veux), le jeton Notion, la clé Claude ou le modèle Ollama, le modèle Whisper.
   Enregistrer redémarre l'application. Les réglages sont stockés dans `%LOCALAPPDATA%\DiscordTranscript\`
   (`.env`, et `config.json` pour les bots et les profils), avec les réunions (`output\sessions\`) et le journal
   (`logs\app.log`). En développement, le `.env` du projet y est copié au premier lancement.
 - Au premier lancement, le modèle Whisper est téléchargé (~500 Mo pour `small`).
+- **Résumé local (Ollama)** : par défaut, l'application rédige les comptes rendus avec Ollama et `mistral-nemo`,
+  gratuitement et sans rien envoyer en ligne. Elle s'en occupe seule : si Ollama est déjà ouvert, elle l'utilise ;
+  s'il est installé, elle le lance ; sinon elle le télécharge (1,6 Go, dans `%LOCALAPPDATA%\DiscordTranscript\ollama`),
+  puis télécharge le modèle s'il manque (~7 Go). Prévoir **12 Go libres** la première fois ; un bandeau montre la
+  progression, et un résumé demandé pendant ce temps attend qu'Ollama soit prêt. À la fermeture, l'application
+  arrête l'Ollama qu'elle a lancé (jamais l'application Ollama ouverte à part).
 - L'application utilise le port local 8765 (et un port libre par bot). Ne pas la lancer en même temps que
   le serveur `uvicorn` avec les mêmes bots : ils seraient connectés deux fois.
 
@@ -65,7 +88,7 @@ Prérequis : Node.js ≥ 22 (`brew install node`).
 
 1. Sur <https://discord.com/developers/applications> : **New Application**, puis onglet **Bot** → **Reset Token** et copie le token.
    Aucun « Privileged Gateway Intent » n'est nécessaire.
-2. Ajoute-le dans **⚙ Réglages → Bots Discord** (nom + token). Sans l'application de bureau : crée un fichier
+2. Ajoute-le dans **••• → Réglages → Bots Discord** (nom + token). Sans l'application de bureau : crée un fichier
    `.env` à la racine du projet (ignoré par git) avec `DISCORD_TOKEN=le-token-du-bot` ; au premier lancement,
    il est repris comme premier bot dans `config.json` (avec un premier profil).
 3. Installe le bot : `cd bot && npm install`
@@ -83,7 +106,8 @@ défaut (sujet, participants… pour aider le résumé). **+** crée un profil, 
 choix : salons vus par le bot, pages Notion partagées avec l'intégration).
 
 1. Choisis l'onglet, puis **● Enregistrer** : le bot du profil rejoint son salon et annonce l'enregistrement dans
-   son chat. La transcription s'affiche en direct, avec le nom de chaque intervenant.
+   son chat. La transcription s'affiche en direct, avec le nom de chaque intervenant ; sous le bouton, le nombre
+   de participants présents dans le salon et d'intervenants déjà transcrits.
 2. **Terminer** fait quitter le salon au bot (il part aussi seul si le salon reste vide une minute).
    Le compte rendu est alors rédigé automatiquement (En bref, Points abordés, Décisions, Actions à mener,
    Questions ouvertes) et publié sur la page Notion du profil.
@@ -114,12 +138,13 @@ Discord, Notion et le modèle de résumé sont simulés (aucun salon rejoint, au
 
 | Fichier | Ce qui est vérifié |
 |---|---|
-| `test_config.py` | bots et profils, reprise des anciens réglages, profil d'une réunion lancée par `/enregistrer` |
-| `test_sessions.py` | transcription au fil de l'eau, fin de réunion, résumé, Notion, corrections, rechargement depuis le disque |
-| `test_server.py` | toutes les routes de l'API (profils, réunions, bots, Notion, clé d'accès) |
-| `test_bots.py` | processus des bots (un par token), erreurs de bot arrêté ou absent |
+| `test_config.py` | bots et profils, `config.json` illisible ou incomplet, reprise des anciens réglages, profil d'une réunion lancée par `/enregistrer` |
+| `test_sessions.py` | transcription au fil de l'eau, fin de réunion, résumé, Notion, corrections, sauvegardes simultanées, rechargement depuis le disque |
+| `test_server.py` | toutes les routes de l'API (profils, réunions, bots, Notion, clé d'accès, refus des autres sites et des noms d'hôte non locaux, audio invalide) |
+| `test_bots.py` | processus des bots (un par token), secret de contrôle par bot, aucune clé transmise inutilement, erreurs de bot arrêté ou absent |
 | `test_notion.py` | liens et ID de pages, conversion en blocs, recherche de pages, publication |
 | `test_summarizer.py` | résumé par Ollama (flux, erreurs, transcription trop longue) |
+| `test_local_ai.py` | Ollama géré par l'app : déjà ouvert, installé, téléchargé, modèle manquant, disque plein, somme de contrôle, archive corrompue, arrêt |
 | `test_desktop_settings.py` | réglages de l'application de bureau (`.env`, bots, redémarrage) |
 | `test_transcriber.py` | ré-échantillonnage et **vraie transcription Whisper** d'une phrase enregistrée (lent) |
 | `test_ui.py` | **la page dans Edge sans fenêtre** : onglets, enregistrement, Terminer, résumé, correction, réglage et création de profils, historique (lent) |
@@ -135,7 +160,7 @@ Chaque nouvelle fonctionnalité doit arriver avec ses tests.
 | `WHISPER_MODEL` | `small` | `base` (plus rapide), `medium` / `large-v3` (plus précis, plus lent) |
 | `WHISPER_LANGUAGE` | `fr` | Langue de la réunion ; vide = détection automatique |
 | `CLAUDE_MODEL` | `claude-opus-5-5` | Modèle Claude utilisé pour le résumé |
-| `OLLAMA_MODEL` | — | Si défini (ex. `mistral-nemo`), le résumé est rédigé en local et gratuitement par [Ollama](https://ollama.com) au lieu de Claude |
+| `OLLAMA_MODEL` | — (`mistral-nemo` dans l'app de bureau) | Si défini, le résumé est rédigé en local et gratuitement par [Ollama](https://ollama.com) au lieu de Claude ; Ollama et le modèle sont téléchargés et lancés automatiquement |
 | `OLLAMA_URL` | `http://127.0.0.1:11434` | Adresse d'Ollama |
 | `OLLAMA_NUM_CTX` | `32768` | Taille de contexte du modèle local (limite la longueur d'une transcription) |
 | `DISCORD_TOKEN` | — | Premier lancement uniquement : repris comme premier bot dans `config.json` |
@@ -143,7 +168,20 @@ Chaque nouvelle fonctionnalité doit arriver avec ses tests.
 | `TRANSCRIPT_ACCESS_KEY` | — | Clé d'accès obligatoire dès que l'app est publiée (voir ci-dessous) |
 
 Ces variables peuvent être définies dans l'environnement ou dans le fichier `.env`. Les bots et les profils
-sont dans `config.json` (dossier de données), modifiables depuis l'application.
+sont dans `config.json` (dossier de données), modifiables depuis l'application. Une copie de secours
+(`config.backup.json`) est tenue à jour : si `config.json` devient illisible (modifié à la main, disque plein…),
+il est mis de côté dans `config.broken.json` et l'app reprend la copie de secours.
+
+## Sécurité
+
+- **App locale (sans `TRANSCRIPT_ACCESS_KEY`)** : le serveur n'accepte que les adresses `127.0.0.1`, `localhost`
+  et `[::1]`, et refuse tout envoi venant d'un autre site (en-tête `Origin`). Une page web ouverte dans le
+  navigateur ne peut donc ni lancer un enregistrement, ni publier dans Notion, ni lire les transcriptions.
+- **Bots** : chaque bot reçoit à son lancement un secret aléatoire, exigé par son API de contrôle locale ;
+  il ne reçoit que son propre token Discord (pas les clés Notion ou Anthropic). Ollama non plus.
+- **Téléchargement d'Ollama** : l'archive est vérifiée avec la somme SHA-256 publiée avec la même version
+  (`sha256sum.txt` de la release GitHub) ; en cas d'écart, rien n'est installé.
+- **App publiée** : la clé d'accès protège toutes les routes (voir ci-dessous).
 
 ## Intégration dans Notion
 

@@ -12,9 +12,8 @@ import queue
 import re
 import threading
 import time
-from dataclasses import dataclass, field
-
 from collections.abc import Iterator
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import numpy as np
@@ -40,6 +39,7 @@ class Session:
     started_at: float = field(default_factory=time.time)
     ended_at: float | None = None
     segments: list[dict] = field(default_factory=list)
+    participants: list[str] = field(default_factory=list)  # personnes présentes dans le salon (signalées par le bot)
     pending: int = 0
     last_text: dict[str, str] = field(default_factory=dict)  # user_id -> fin de sa dernière phrase
     transcript_edit: str = ""  # transcription corrigée à la main ("" = celle générée)
@@ -89,6 +89,7 @@ class Session:
             "active": self.active,
             "pending": self.pending,
             "speakers": self.speakers(),
+            "participants": self.participants,
             "summary_status": self.summary_status,
             "notion_status": self.notion_status,
         }
@@ -106,16 +107,25 @@ class Session:
         }
 
     def save(self) -> None:
+        """Enregistre la réunion ; appelé depuis plusieurs threads (transcription, page, fin de réunion)."""
         folder = SESSIONS_DIR / self.id
-        folder.mkdir(parents=True, exist_ok=True)
-        data = {**self.to_dict(), "bot_id": self.bot_id, "transcript_edit": self.transcript_edit,
-                "context": self.context, "segments": sorted(self.segments, key=lambda s: s["start"])}
-        (folder / "transcript.json").write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
-        header = f"# Réunion Discord — {self.guild} / {self.channel}\n\n" \
-                 f"{time.strftime('%d/%m/%Y %H:%M', time.localtime(self.started_at))}\n\n"
-        (folder / "transcript.md").write_text(header + self.text() + "\n", encoding="utf-8")
-        if self.summary:
-            (folder / "resume.md").write_text(self.summary + "\n", encoding="utf-8")
+        with _save_lock:
+            folder.mkdir(parents=True, exist_ok=True)
+            data = {**self.to_dict(), "bot_id": self.bot_id, "transcript_edit": self.transcript_edit,
+                    "context": self.context, "segments": sorted(self.segments, key=lambda s: s["start"])}
+            _write(folder / "transcript.json", json.dumps(data, ensure_ascii=False, indent=2))
+            header = f"# Réunion Discord — {self.guild} / {self.channel}\n\n" \
+                     f"{time.strftime('%d/%m/%Y %H:%M', time.localtime(self.started_at))}\n\n"
+            _write(folder / "transcript.md", header + self.text() + "\n")
+            if self.summary:
+                _write(folder / "resume.md", self.summary + "\n")
+
+
+def _write(path: Path, text: str) -> None:
+    """Écriture atomique : une coupure en pleine sauvegarde ne laisse jamais un fichier tronqué."""
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(text, encoding="utf-8")
+    tmp.replace(path)
 
 
 def _clock(seconds: float) -> str:
@@ -126,6 +136,7 @@ def _clock(seconds: float) -> str:
 
 _sessions: dict[str, Session] = {}
 _lock = threading.Lock()
+_save_lock = threading.Lock()
 _jobs: queue.Queue = queue.Queue()
 
 
@@ -153,6 +164,12 @@ def overviews() -> list[dict]:
     with _lock:
         sessions = [s for s in _sessions.values() if s.active or s.pending or s.segments]
     return [s.overview() for s in sorted(sessions, key=lambda s: s.started_at, reverse=True)]
+
+
+def set_participants(session: Session, names: list[str]) -> None:
+    """Personnes présentes dans le salon, envoyées par le bot à chaque arrivée ou départ."""
+    if session.active:
+        session.participants = sorted(names)
 
 
 def update_transcript(session: Session, transcript: str) -> None:

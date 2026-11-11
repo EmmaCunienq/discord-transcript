@@ -5,6 +5,7 @@
 // Il se pilote depuis la page web (via le serveur, qui appelle l'API de contrôle
 // locale ci-dessous) ou, en secours, par les commandes /enregistrer et /stop.
 
+import { timingSafeEqual } from "node:crypto";
 import http from "node:http";
 import { ChannelType, Client, Events, GatewayIntentBits, MessageFlags } from "discord.js";
 import {
@@ -21,6 +22,10 @@ const BOT_ID = process.env.BOT_ID;
 const SERVER = process.env.TRANSCRIPT_SERVER || "http://127.0.0.1:8010";
 const ACCESS_KEY = process.env.TRANSCRIPT_ACCESS_KEY || "";
 const CONTROL_PORT = Number(process.env.BOT_CONTROL_PORT);
+// Secret tiré par le serveur à chaque lancement : seule l'app peut piloter le bot (une page web
+// ouverte dans le navigateur ne peut pas envoyer cet en-tête au port local)
+const CONTROL_KEY = Buffer.from(process.env.BOT_CONTROL_KEY || "");
+const MAX_BODY = 64 * 1024;
 const TAG = `[bot ${process.env.BOT_NAME}]`; // préfixe du journal (plusieurs bots peuvent tourner)
 
 // Audio décodé : PCM 16 bits mono 48 kHz
@@ -32,8 +37,8 @@ const SILENCE_MS = 1000, SOFT_SEC = 20, MAX_SEC = 30, MIN_SEC = 0.4, QUIET_RMS =
 // Arrêt automatique quand il ne reste plus personne dans le salon
 const EMPTY_CHANNEL_MS = 60_000;
 
-if (!TOKEN || !BOT_ID || !CONTROL_PORT) {
-  console.error(`${TAG} lancé sans DISCORD_TOKEN / BOT_ID / BOT_CONTROL_PORT : il est démarré par le serveur.`);
+if (!TOKEN || !BOT_ID || !CONTROL_PORT || !CONTROL_KEY.length) {
+  console.error(`${TAG} lancé sans DISCORD_TOKEN / BOT_ID / BOT_CONTROL_PORT / BOT_CONTROL_KEY : il est démarré par le serveur.`);
   process.exit(1);
 }
 
@@ -155,10 +160,21 @@ class Recording {
     console.log(`${TAG} enregistrement arrêté dans #${this.channel.name}`);
   }
 
+  // Appelé au démarrage et à chaque arrivée / départ dans le salon
+  reportParticipants(names) {
+    if (this.stopped) return;
+    api(`/api/discord/sessions/${this.sessionId}/participants`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ names }),
+    }).catch((e) => console.error(`${TAG} liste des participants non envoyée : ${e.message}`));
+  }
+
   checkEmpty() {
-    const humans = this.channel.members.filter((m) => !m.user.bot).size;
+    const humans = this.channel.members.filter((m) => !m.user.bot);
+    this.reportParticipants([...humans.values()].map((m) => m.displayName));
     clearTimeout(this.emptyTimer);
-    if (!humans) {
+    if (!humans.size) {
       this.emptyTimer = setTimeout(() => {
         console.log(`${TAG} salon #${this.channel.name} vide — arrêt de l'enregistrement`);
         this.stop();
@@ -253,10 +269,18 @@ async function listChannels(guildId) {
   return channels;
 }
 
+function authorized(req) {
+  const given = Buffer.from(req.headers["x-control-key"] || "");
+  return given.length === CONTROL_KEY.length && timingSafeEqual(given, CONTROL_KEY);
+}
+
 function readJson(req) {
   return new Promise((resolve, reject) => {
     let body = "";
-    req.on("data", (chunk) => (body += chunk));
+    req.on("data", (chunk) => {
+      body += chunk;
+      if (body.length > MAX_BODY) reject(new HttpError(413, "Requête trop volumineuse."));
+    });
     req.on("end", () => {
       try { resolve(body ? JSON.parse(body) : {}); } catch (e) { reject(new HttpError(400, "JSON invalide")); }
     });
@@ -270,6 +294,7 @@ const control = http.createServer(async (req, res) => {
     res.end(JSON.stringify(body));
   };
   try {
+    if (!authorized(req)) throw new HttpError(403, "Accès refusé.");
     if (!client.isReady()) throw new HttpError(503, "Le bot Discord est en cours de connexion, réessaie dans un instant.");
     const url = new URL(req.url, "http://localhost");
     if (req.method === "GET" && url.pathname === "/guilds") {
