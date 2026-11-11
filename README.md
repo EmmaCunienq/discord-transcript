@@ -52,8 +52,12 @@ en arrière-plan et s'arrêtent à la fermeture de la fenêtre. Node.js est emba
 powershell -ExecutionPolicy Bypass -File desktop\build.ps1
 ```
 
-L'application est créée dans `dist\DiscordTranscript\` : lancer `DiscordTranscript.exe` (le dossier entier peut être
-copié ou zippé vers un autre PC Windows 10/11). Pour la tester sans la construire : `.venv-win\Scripts\python.exe desktop\main.py`.
+L'application est créée dans `dist\DiscordTranscript\` : lancer `DiscordTranscript.exe`. Si Inno Setup 6 est installé
+(`winget install JRSoftware.InnoSetup`), le build produit aussi l'installeur `dist\DiscordTranscript-Setup-<version>.exe`
+(version dans `app/__init__.py`) : installation sans droits administrateur dans
+`%LOCALAPPDATA%\Programs\Discord Transcript`, raccourci dans le menu Démarrer, mise à jour en relançant un installeur
+plus récent. Désinstaller (Paramètres Windows → Applications) garde les réglages et les réunions.
+Pour la tester sans la construire : `.venv-win\Scripts\python.exe desktop\main.py`.
 
 - **Réglages** (menu **••• → Réglages**, en haut de la page) : les **bots Discord**
   (nom + token, autant que tu veux), le jeton Notion, la clé Claude ou le modèle Ollama, le modèle Whisper.
@@ -148,6 +152,7 @@ Discord, Notion et le modèle de résumé sont simulés (aucun salon rejoint, au
 | `test_desktop_settings.py` | réglages de l'application de bureau (`.env`, bots, redémarrage) |
 | `test_transcriber.py` | ré-échantillonnage et **vraie transcription Whisper** d'une phrase enregistrée (lent) |
 | `test_ui.py` | **la page dans Edge sans fenêtre** : onglets, enregistrement, Terminer, résumé, correction, réglage et création de profils, historique (lent) |
+| `test_installer.py` | installeur cohérent avec le build (dossier, exe, icône), installé sans admin hors du dossier des données |
 | `test_code_quality.py` | pas d'import ni d'icône inutilisés, scripts de la page et du bot valides |
 
 `desktop\build.ps1` lance les tests rapides avant de construire l'application et s'arrête si l'un échoue.

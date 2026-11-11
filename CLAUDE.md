@@ -23,7 +23,7 @@ ou Claude, puis publié dans Notion. Interface et textes en **français**.
 .venv-win\Scripts\python.exe desktop\main.py                 # lancer l'app de bureau (dev)
 .venv-win\Scripts\python.exe -m pytest                       # tous les tests (~40 s, Edge + Whisper)
 .venv-win\Scripts\python.exe -m pytest --skip-slow           # tests rapides (~4 s)
-powershell -ExecutionPolicy Bypass -File desktop\build.ps1   # tests rapides puis .exe dans dist\DiscordTranscript\
+powershell -ExecutionPolicy Bypass -File desktop\build.ps1   # tests rapides, .exe dans dist\DiscordTranscript\, puis installeur (Inno Setup)
 cd bot; npm install                                          # dépendances du bot
 ```
 
@@ -48,6 +48,7 @@ Environnement Python : `.venv-win` (Python 3.12). `.venv` est un ancien environn
 | `static/index.html` | Page unique sans dépendance : onglets de profils, enregistrement, transcription, résumé, historique du profil |
 | `static/settings.html` | Réglages (bots, jeton Notion, Ollama/Claude, Whisper) — uniquement dans l'app de bureau |
 | `desktop/DiscordTranscript.spec` | PyInstaller (onedir) : embarque `static/`, `bot/` avec `node_modules` et `node.exe` |
+| `desktop/installer.iss` | Inno Setup 6 : `dist\DiscordTranscript-Setup-<version>.exe`, sans admin, dans `%LOCALAPPDATA%\Programs\Discord Transcript` ; version = `app.__version__` |
 
 Données utilisateur (`DATA_DIR`) : `.env` (clés), `config.json` (bots, profils ; copie de secours `config.backup.json`), `output/sessions/`, `logs/app.log`,
 `webview/` (stockage de la fenêtre). Les variables d'environnement sont lues **à l'import** des modules.
